@@ -86,6 +86,7 @@ popups_date.forEach(addListenerPopup);
  */
 function addListenerPopup(element){
 	element.addEventListener("blur", function(element){focusOutPopup(element);});
+	console.log('test');
 }
 
 /**
