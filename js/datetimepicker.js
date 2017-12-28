@@ -569,7 +569,6 @@ function initialiseDatePopup(element){
 			// TODO year selector displayed by default
 		}
 	}
-	console.log('test');
 
 }
 
