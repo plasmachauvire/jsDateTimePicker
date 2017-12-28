@@ -1,0 +1,29 @@
+.popup-date-picker {
+	border-radius: 5px;
+	padding: 20px;
+	margin-top: 29px;
+	margin-bottom: 20px;
+	position: absolute;
+	width: 400px;
+	top: 0;
+	background-color: rgba(0,93,186,0.9);
+	z-index: 1000;
+	cursor: pointer;
+}
+
+.popup-time-picker {
+	border-radius: 5px;
+	padding: 20px;
+	margin-top: 29px;
+	margin-bottom: 20px;
+	position: absolute;
+	width: 400px;
+	top: 0;
+	background-color: rgba(0,93,186,0.9);
+	z-index: 1000;
+	cursor: pointer;
+}
+
+.date-time-picker{
+	position:relative;
+}
