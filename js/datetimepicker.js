@@ -85,8 +85,7 @@ popups_date.forEach(addListenerPopup);
  * @param element the popup
  */
 function addListenerPopup(element){
-	element.addEventListener("blur", function(element){focusOutPopup(element);});
-	console.log('test');
+	element.addEventListener("blur", function(event){focusOutPopup(element, event);});
 }
 
 /**
@@ -179,6 +178,20 @@ function canBeValid(element){
 }
 
 /**
+ * When a label in popup ins clicked
+ * @param element the clicked label
+ */
+function clickOnLabel(element){
+	var parentDiv = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+	var selector = parentDiv.querySelector('.selector');
+	var name = element.className.split('-')[0];
+	var to_display = selector.querySelector('.' + name + '-selector');
+	var to_hide = selector.querySelectorAll('table');
+	to_hide.forEach(function(element){element.style.display="none";});
+	to_display.style.display="";
+}
+
+/**
  * Check if given array contains given value
  * @param array the array
  * @param value the value
@@ -209,7 +222,7 @@ function dateSelectorClicked(element){
 	element.style.borderRadius='10000px';
 	element.id = 'clicked';
 
-	var popup = table.parentNode;
+	var popup = table.parentNode.parentNode;
 	popup.style.display = "none";
 	updateDate(popup.parentNode, element.innerHTML);
 }
@@ -237,7 +250,7 @@ function dateFormatIsOnlyDigit(){
 function eventFocusOnDate(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-date-picker');
-	popup.style.display = '';
+	popup.style.display="";
 }
 
 /**
@@ -246,7 +259,7 @@ function eventFocusOnDate(element){
 function eventFocusOnTime(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-time-picker');
-	popup.style.display = '';
+	popup.style.display="";
 }
 
 /**
@@ -271,7 +284,7 @@ function eventKeyUp(element){
 function eventLostFocusOnDate(element, event){
 	var popup = element.parentNode.querySelector('.popup-date-picker');
 
-	if(!event || !event.relatedTarget || !(event.relatedTarget === popup)){
+	if(!event || !event.relatedTarget || (!(event.relatedTarget === popup) && !popup.contains(event.relatedTarget))){
 		var last_input = getParentInput(element);
 		var last_input_value = last_input.getAttribute('value');
 		var last_input_time = last_input_value.split(' ')[1];
@@ -317,15 +330,17 @@ function eventLostFocusOnTime(element, event){
  * When focus is lost by a popup
  * @param element the popup
  */
-function focusOutPopup(element){
-	element.target.style.display = 'none';
-	if(element.target.className === 'popup-date-picker'){
-		var date_input = element.target.parentNode.querySelector('.date');
-		setOutputFormat(date_input);
-	}
-	else{
-		var time_input = element.target.parentNode.querySelector('.time');
-		setOutputFormat(time_input);
+function focusOutPopup(element, event){
+	if(!element.contains(event.relatedTarget)){
+		element.style.display = 'none';
+		if(element.className === 'popup-date-picker'){
+			var date_input = element.parentNode.querySelector('.date');
+			setOutputFormat(date_input);
+		}
+		else{
+			var time_input = element.parentNode.querySelector('.time');
+			setOutputFormat(time_input);
+		}
 	}
 }
 
@@ -372,7 +387,7 @@ function getHtmlForDateSelector(date){
 		}
 	}
 
-	var html  = '<table style="width:100%; text-align:center">'
+	var html  = '<table class="day-selector" style="width:100%; text-align:center">'
 		+   '<tr>'
 		+     '<th>'+days[0].split('')[0]+'</th>'
 		+     '<th>'+days[1].split('')[0]+'</th>'
@@ -532,19 +547,19 @@ function initialiseDatePopup(element){
 	var month_name = date.format('MMMM');
 	var year = date.format('Y');
 
-	element.innerHTML += '<div class="date-in-popup" style="width:100%"></div>';
+	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date = element.querySelector('.date-in-popup');
 
 	var to_add_html = '<table style="width:100%;"><tr>'
 	for(i = 0; i < order.length; i++){
 		if(order[i] === 'Y'){
-			to_add_html += '<td class="year-popup"> '+year+'</td>';
+			to_add_html += '<td class="year-popup" onclick="clickOnLabel(this)"> '+year+'</td>';
 		}
 		if(order[i] === 'M'){
-			to_add_html += '<td class="month-popup"> '+month_name+'</td>';
+			to_add_html += '<td class="month-popup" onclick="clickOnLabel(this)"> '+month_name+'</td>';
 		}
 		if(order[i] === 'D'){
-			to_add_html += '<td class="day-popup"> '+day_name+' '+day_number+'</td>';
+			to_add_html += '<td class="day-popup" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</td>';
 		}
 	}
 	to_add_html += '</tr></table>';
@@ -556,19 +571,23 @@ function initialiseDatePopup(element){
 
 	if(contains(order, 'D')){
 		var date_selector_html = getHtmlForDateSelector(date);
-		element.innerHTML += date_selector_html;
+		div_selector.innerHTML += date_selector_html;
+		if(contains(order, 'M') || contains(order, 'Y')){
+			var date_selector = div_selector.querySelector('.day-selector');
+			date_selector.style.display="none";
+		}
 	}
-	else if(contains(order, 'M')){
+	if(contains(order, 'M')){
+		div_selector.innerHTML += '<table class="month-selector"><tr><th>month</th></tr><tr><td>Month</td></tr></table>';
 		// TODO month selector
-		if(!contains(order, 'D')){
-		// TODO month selector displayed by default
+		if(contains(order, 'Y')){
+			var month_selector = div_selector.querySelector('.month-selector');
+			month_selector.style.display="none";
 		}
 	}
-	else if(contains(order, 'Y')){
+	if(contains(order, 'Y')){
+		div_selector.innerHTML += '<table class="year-selector"><tr><th>year</th></tr><tr><td>Year</td></tr></table>';
 		// TODO year selector
-		if(!contains(order, 'D') && !contains(order, 'M')){
-			// TODO year selector displayed by default
-		}
 	}
 
 }
