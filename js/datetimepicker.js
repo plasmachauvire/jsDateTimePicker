@@ -77,6 +77,8 @@ var popups_time = document.querySelectorAll('.popup-time-picker');
 
 popups_date.forEach(initialiseDatePopup);
 popups_time.forEach(initialiseTimePopup);
+dates_inputs.forEach(setOutputFormat);
+times_inputs.forEach(setOutputFormat);
 popups_time.forEach(addListenerPopup);
 popups_date.forEach(addListenerPopup);
 
@@ -245,12 +247,29 @@ function dateFormatIsOnlyDigit(){
 }
 
 /**
+ * Display the popup and set right content
+ * @param popup the popup ton display
+ */
+function displayPopup(popup){
+	popup.innerHTML = '';
+	popup.style.display='';
+	if(popup.className === 'popup-date-picker'){
+		initialiseDatePopup(popup);
+		setInputFormat(popup.parentNode.querySelector('.date'));
+	}
+	else{
+		initialiseTimePopup(popup);
+		setInputFormat(popup.parentNode.querySelector('.time'));
+	}
+}
+
+/**
  * When focus is put on a date input
  */
 function eventFocusOnDate(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-date-picker');
-	popup.style.display="";
+	displayPopup(popup);
 }
 
 /**
@@ -259,7 +278,7 @@ function eventFocusOnDate(element){
 function eventFocusOnTime(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-time-picker');
-	popup.style.display="";
+	displayPopup(popup);
 }
 
 /**
@@ -430,7 +449,8 @@ function getHtmlForDateSelector(date){
 
 	var index_end_month = arrayIndexOf(days, last_day_name);
 	if(index_end_month !== 6){
-		for(var i = 0; i <= 6-index_end_month; i++){
+		for(var i = 0; i < 6-index_end_month; i++){
+			console.log(6-index_end_month);
 			lines[line][index_end_month+i+1][0] = i+1;
 			lines[line][index_end_month+i+1][1] = 1;
 		}
@@ -518,9 +538,10 @@ function hideAndSetNew(element, index, array){
 
 /**
  * initialize content of date popup
- * @param element
+ * @param element the date popup
  */
 function initialiseDatePopup(element){
+	setOutputFormat(element.parentNode.querySelector('.date'));
 	var date = moment(element.parentNode.querySelector('.date').value, format.date.display);
 	var j = 0;
 	var order = [];
@@ -589,7 +610,6 @@ function initialiseDatePopup(element){
 		div_selector.innerHTML += '<table class="year-selector"><tr><th>year</th></tr><tr><td>Year</td></tr></table>';
 		// TODO year selector
 	}
-
 }
 
 /**
