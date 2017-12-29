@@ -197,17 +197,17 @@ function contains(array, value){
  * When a day in clicked in date selector
  * @param element the clicked day (<td>)
  */
-function dateSelectorFocused(element){
+function dateSelectorClicked(element){
 	var table = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.td-date-selector');
 	td_selectable.forEach(function(element){
-		if(element.style.background !== ''){
-			element.style.background = '';
-			element.style.borderRadius = '';
-		}
+		element.style.background = '';
+		element.style.borderRadius = '';
+		element.id = '';
 	});
-	element.style.background = 'bisque';
-	element.style.borderRadius = '10000px';
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+	element.id = 'clicked';
 
 	var popup = table.parentNode;
 	popup.style.display = "none";
@@ -426,10 +426,10 @@ function getHtmlForDateSelector(date){
 		for(var j = 0; j < lines[i].length; j++){
 			if(lines[i][j][1] === 0){
 				if(lines[i][j][0] == date_day_number){
-					html += '<td class="td-date-selector" style="background:bisque; border-radius:10000px;" onclick="dateSelectorFocused(this)">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector" id="clicked" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
 				}
 				else{
-					html += '<td class="td-date-selector" onclick="dateSelectorFocused(this)">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector" id="" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
 				}
 			}
 			else{
@@ -587,6 +587,30 @@ function initialiseTimePopup(element){
  */
 function isDate(element){
 	return element.getAttribute('class') === 'date';
+}
+
+/**
+ * When mouse is over the td
+ * @param element the td
+ */
+function mouseIsOverTd(element){
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+}
+
+/**
+ * When mouse is leave td
+ * @param element the td
+ */
+function mouseLeftTd(element){
+	if(element.getAttribute('id') === 'clicked'){
+		element.style.background='bisque';
+		element.style.borderRadius='10000px';
+	}
+	else{
+		element.style.background='';
+		element.style.borderRadius='';
+	}
 }
 
 /**
