@@ -11,7 +11,6 @@ var format = {
 		display : 'HH:mm'
 	}
 };
-
 var original_format = 'DD/MM/YYYY hh:mm'
 
 /**
