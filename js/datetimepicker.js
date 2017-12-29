@@ -12,6 +12,8 @@ var format = {
 	}
 };
 
+var original_format = 'DD/MM/YYYY hh:mm'
+
 /**
  * Used to check if date / time user in being writing are correct
  */
@@ -77,6 +79,8 @@ var popups_time = document.querySelectorAll('.popup-time-picker');
 
 popups_date.forEach(initialiseDatePopup);
 popups_time.forEach(initialiseTimePopup);
+dates_inputs.forEach(setOutputFormat);
+times_inputs.forEach(setOutputFormat);
 popups_time.forEach(addListenerPopup);
 popups_date.forEach(addListenerPopup);
 
@@ -85,7 +89,7 @@ popups_date.forEach(addListenerPopup);
  * @param element the popup
  */
 function addListenerPopup(element){
-	element.addEventListener("blur", function(element){focusOutPopup(element);});
+	element.addEventListener("blur", function(event){focusOutPopup(element, event);});
 }
 
 /**
@@ -178,6 +182,20 @@ function canBeValid(element){
 }
 
 /**
+ * When a label in popup ins clicked
+ * @param element the clicked label
+ */
+function clickOnLabel(element){
+	var parentDiv = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+	var selector = parentDiv.querySelector('.selector');
+	var name = element.className.split('-')[0];
+	var to_display = selector.querySelector('.' + name + '-selector');
+	var to_hide = selector.querySelectorAll('table');
+	to_hide.forEach(function(element){element.style.display="none";});
+	to_display.style.display="";
+}
+
+/**
  * Check if given array contains given value
  * @param array the array
  * @param value the value
@@ -196,19 +214,19 @@ function contains(array, value){
  * When a day in clicked in date selector
  * @param element the clicked day (<td>)
  */
-function dateSelectorFocused(element){
+function dateSelectorClicked(element){
 	var table = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.td-date-selector');
 	td_selectable.forEach(function(element){
-		if(element.style.background !== ''){
-			element.style.background = '';
-			element.style.borderRadius = '';
-		}
+		element.style.background = '';
+		element.style.borderRadius = '';
+		element.id = '';
 	});
-	element.style.background = 'bisque';
-	element.style.borderRadius = '10000px';
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+	element.id = 'clicked';
 
-	var popup = table.parentNode;
+	var popup = table.parentNode.parentNode;
 	popup.style.display = "none";
 	updateDate(popup.parentNode, element.innerHTML);
 }
@@ -231,12 +249,29 @@ function dateFormatIsOnlyDigit(){
 }
 
 /**
+ * Display the popup and set right content
+ * @param popup the popup ton display
+ */
+function displayPopup(popup){
+	popup.innerHTML = '';
+	popup.style.display='';
+	if(popup.className === 'popup-date-picker'){
+		initialiseDatePopup(popup);
+		setInputFormat(popup.parentNode.querySelector('.date'));
+	}
+	else{
+		initialiseTimePopup(popup);
+		setInputFormat(popup.parentNode.querySelector('.time'));
+	}
+}
+
+/**
  * When focus is put on a date input
  */
 function eventFocusOnDate(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-date-picker');
-	popup.style.display = '';
+	displayPopup(popup);
 }
 
 /**
@@ -245,17 +280,34 @@ function eventFocusOnDate(element){
 function eventFocusOnTime(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-time-picker');
-	popup.style.display = '';
+	displayPopup(popup);
 }
 
 /**
- * When user take out is finger of a key (key pushed is written at this moment)
+ * When user take out is finger of a key (key pushed is already written at this moment)
  */
 function eventKeyUp(element){
 	if(canBeValid(element)){
 		element.style.borderColor = '';
 		element.style.borderWidth = '';
 		element.style.borderStyle = '';
+		if(isDate(element)){
+			var regex = getFullRegexForFormat(format.date.edit);
+			if(element.value.match(regex)){
+				var popup = element.parentNode.querySelector('.popup-date-picker');
+				popup.style.display = 'none';
+				displayPopup(popup);
+			}
+		}
+		else{
+			var regex = getFullRegexForFormat(format.time.edit);
+			if(element.value.match(regex)){
+				var popup = element.parentNode.querySelector('.popup-time-picker');
+				popup.style.display = 'none';
+				displayPopup(popup);
+			}
+		}
+		setInputFormat(element);
 	}
 	else{
 		element.style.borderColor = 'red';
@@ -270,15 +322,8 @@ function eventKeyUp(element){
 function eventLostFocusOnDate(element, event){
 	var popup = element.parentNode.querySelector('.popup-date-picker');
 
-	if(!event || !event.relatedTarget || !(event.relatedTarget === popup)){
-		var last_input = getParentInput(element);
-		var last_input_value = last_input.getAttribute('value');
-		var last_input_time = last_input_value.split(' ')[1];
-		var new_date = element.value;
-		if (new_date) {
-			var new_value = new_date + ' ' + last_input_time;
-			last_input.setAttribute('value', new_value);
-		}
+	if(!event || !event.relatedTarget || (!(event.relatedTarget === popup) && !popup.contains(event.relatedTarget))){
+		updateDateRealInput(element);
 		setOutputFormat(element);
 		var popup = element.parentNode.querySelector('.popup-date-picker');
 		popup.style.display = 'none';
@@ -295,14 +340,7 @@ function eventLostFocusOnTime(element, event){
 	var popup = element.parentNode.querySelector('.popup-time-picker');
 
 	if(!event.relatedTarget || !(event.relatedTarget === popup)){
-		var last_input = getParentInput(element);
-		var last_input_value = last_input.getAttribute('value');
-		var last_input_date = last_input_value.split(' ')[0];
-		var new_time = element.value;
-		if (new_time) {
-			var new_value = last_input_date + ' ' + new_time;
-			last_input.setAttribute('value', new_value);
-		}
+		updateDateRealInput(element);
 		setOutputFormat(element);
 		var popup = element.parentNode.querySelector('.popup-time-picker');
 		popup.style.display = 'none';
@@ -316,16 +354,60 @@ function eventLostFocusOnTime(element, event){
  * When focus is lost by a popup
  * @param element the popup
  */
-function focusOutPopup(element){
-	element.target.style.display = 'none';
-	if(element.target.className === 'popup-date-picker'){
-		var date_input = element.target.parentNode.querySelector('.date');
-		setOutputFormat(date_input);
+function focusOutPopup(element, event){
+	if(!element.contains(event.relatedTarget)){
+		element.style.display = 'none';
+		if(element.className === 'popup-date-picker'){
+			var date_input = element.parentNode.querySelector('.date');
+			setOutputFormat(date_input);
+		}
+		else{
+			var time_input = element.parentNode.querySelector('.time');
+			setOutputFormat(time_input);
+		}
 	}
-	else{
-		var time_input = element.target.parentNode.querySelector('.time');
-		setOutputFormat(time_input);
+}
+
+function getFullRegexForFormat(format){
+	var full_regex = '^(';
+	var key_format;
+	var format_split = format.split('');
+	var new_i = 0;
+
+	for(var i = 0; i < format_split.length; i++){
+		new_i = i;
+		key_format = format_split[i];
+
+		if(i < format_split.length-1 && format_split[i] === format_split[i+1]){
+			key_format += format_split[i+1];
+			new_i++;
+			if(i < format_split.length-2 && format_split[i+2] === format_split[i]){
+				key_format += format_split[i+2];
+				new_i++;
+				if(i < format_split.length-3 && format_split[i+3] === format_split[i]){
+					key_format += format_split[i+3];
+					new_i++;
+				}
+			}
+		}
+		if(!regex.hasOwnProperty(key_format)){
+			if(key_format !== undefined){
+				full_regex += key_format;
+			}
+		}
+		else{
+			if(regex[key_format][2]){
+				full_regex += regex[key_format][2];
+			}
+			else{
+				full_regex += regex[key_format];
+			}
+		}
+		i = new_i;
 	}
+
+	full_regex += ')$';
+	return full_regex;
 }
 
 /**
@@ -352,6 +434,7 @@ function getHtmlForDateSelector(date){
 	days[5] = saturday;
 	days[6] = sunday;
 
+
 	var first_day_of_month = moment(date);
 	first_day_of_month.startOf('month');
 	var name_first_day = first_day_of_month.format('dddd');
@@ -364,14 +447,14 @@ function getHtmlForDateSelector(date){
 	var date_day_number = date.format('D');
 
 	var lines = [];
-	for(var i = 0; i < 5; i++){
+	for(var i = 0; i < 6; i++){
 		lines[i] = [];
 		for(var j = 0; j < 7; j++){
 			lines[i][j] = [];
 		}
 	}
 
-	var html  = '<table style="width:100%; text-align:center">'
+	var html  = '<table class="day-selector" style="width:100%; text-align:center">'
 		+   '<tr>'
 		+     '<th>'+days[0].split('')[0]+'</th>'
 		+     '<th>'+days[1].split('')[0]+'</th>'
@@ -401,34 +484,38 @@ function getHtmlForDateSelector(date){
 		}
 	}
 
-	var number_per_line = index_start_month;
-	for(var i = 1; i <= number_of_days; i++){
+	var number_per_line = index_start_month+1;
+	for(var i = 2; i <= number_of_days; i++){
 		if(number_per_line > 6){
 			number_per_line = 0;
 			line++;
 		}
-		lines[line][number_per_line][0] = i;
-		lines[line][number_per_line][1] = 0;
+		if(lines[line] && lines[line][number_per_line]){
+			lines[line][number_per_line][0] = i;
+			lines[line][number_per_line][1] = 0;
+		}
 		number_per_line++;
 	}
 
 	var index_end_month = arrayIndexOf(days, last_day_name);
 	if(index_end_month !== 6){
-		for(var i = 0; i <= 6-index_end_month; i++){
+		for(var i = 0; i < 6-index_end_month; i++){
 			lines[line][index_end_month+i+1][0] = i+1;
 			lines[line][index_end_month+i+1][1] = 1;
 		}
 	}
 
+
 	for(var i = 0; i < lines.length; i++){
+		if(lines[i] && lines[i][0] && lines[i][0][0]){
 		html += '<tr>';
 		for(var j = 0; j < lines[i].length; j++){
 			if(lines[i][j][1] === 0){
 				if(lines[i][j][0] == date_day_number){
-					html += '<td class="td-date-selector" style="background:bisque; border-radius:10000px;" onclick="dateSelectorFocused(this)">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector" id="clicked" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
 				}
 				else{
-					html += '<td class="td-date-selector" onclick="dateSelectorFocused(this)">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector" id="" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
 				}
 			}
 			else{
@@ -436,11 +523,150 @@ function getHtmlForDateSelector(date){
 			}
 		}
 		html += '</tr>';
+		}
 	}
 
 	html += '</table>';
 
 	return html;
+}
+
+function getHtmlForMonthSelector(date){
+	var html = '<table class="month-selector" style="width:100%; text-align:center">';
+
+	var january = moment.unix(0).format('MMMM');
+	var february = moment.unix(2678400).format('MMMM');
+	var march = moment.unix(5097600).format('MMMM');
+	var april = moment.unix(7776000).format('MMMM');
+	var may = moment.unix(10368000).format('MMMM');
+	var june = moment.unix(13046400).format('MMMM');
+	var july = moment.unix(15638400).format('MMMM');
+	var august = moment.unix(18316800).format('MMMM');
+	var september = moment.unix(20995200).format('MMMM');
+	var october = moment.unix(23587200).format('MMMM');
+	var november = moment.unix(26265600).format('MMMM');
+	var december = moment.unix(28857600).format('MMMM');
+
+	var months = [];
+	months[0] = january;
+	months[1] = february;
+	months[2] = march;
+	months[3] = april;
+	months[4] = may;
+	months[5] = june;
+	months[6] = july;
+	months[7] = august;
+	months[8] = september;
+	months[9] = october;
+	months[10] = november;
+	months[11] = december;
+
+	var current_month_name = date.format('MMMM');
+
+	var lines = [];
+
+	for(var i = 0; i < 4; i++){
+		lines[i] = [];
+		for(var j = 0; j < 3; j++){
+			lines[i][j] = [];
+		}
+	}
+
+	var line = 0;
+	var number_per_line = 0;
+	for(var i = 0; i < 12; i++){
+		if(number_per_line > 2){
+			line++;
+			number_per_line = 0;
+		}
+		lines[line][number_per_line][0] = months[i];
+		if(months[i] === current_month_name){
+			lines[line][number_per_line][1] = 1;
+		}
+		else{
+			lines[line][number_per_line][1] = 0;
+		}
+		number_per_line++;
+	}
+
+	for(var i = 0; i < lines.length; i++){
+		html += '<tr>';
+		for(var j = 0; j < lines[i].length; j++){
+			if(lines[i][j][1] === 1){
+				html += '<td class="td-month-selector" id="clicked" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+			}
+			else{
+				html += '<td class="td-month-selector" id="" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+			}
+		}
+		html += '</tr>';
+	}
+
+	html += '</table>';
+	return html;
+}
+
+function getOutputFormat(element){
+	if(isDate(element)){
+		if(element.id.split('$$')[0] == 0){
+			var to_display = moment(element.value, format.date.edit);
+			var new_value = to_display.format(format.date.display).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.date.edit);
+				new_value = new_value.format(format.date.display).toString();
+			}
+			return new_value;
+		}
+		return element.value;
+	}
+	else{
+		if(element.id.split('$$')[0] == 0){
+			var to_display = moment(element.value, format.time.edit);
+			var new_value = to_display.format(format.time.display).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.time.edit);
+				new_value = new_value.format(format.time.display).toString();
+			}
+			return new_value;
+		}
+		return element.value;
+	}
+}
+
+/**
+ * Get the value of the element has input format
+ * @param element the element (an input)
+ * @returns {*}
+ */
+function getInputFormat(element){
+	if(isDate(element)){
+		if(element.id.split('$$')[0] == 1){
+			var to_display = moment(element.value, format.date.display);
+			var new_value = to_display.format(format.date.edit).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.date.display);
+				new_value = new_value.format(format.date.edit).toString();
+			}
+			return new_value.format(format.date.edit);
+		}
+		return element.value;
+	}
+	else{
+		if(element.id.split('$$')[0] == 1){
+			var to_display = moment(element.value, format.time.display);
+			var new_value = to_display.format(format.time.edit).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.time.display);
+				new_value = new_value.format(format.time.edit).toString();
+			}
+			return new_value.format(format.time.edit);
+		}
+		return element.value;
+	}
 }
 
 /**
@@ -479,14 +705,14 @@ function hideAndSetNew(element, index, array){
 		old_date_input = date_has_input;
 		var date = display_date.format(format.date.display).toString();
 		old_date_display = date;
-		parentDiv.innerHTML += '<input autocomplete="off" class="date" name="'+date_input+'" value="'+date+'">';
+		parentDiv.innerHTML += '<input autocomplete="off" class="date" id="1$$'+date+'" name="'+date_input+'" value="'+date+'">';
 	}
 	if("time" in format){
 		var time_has_input = display_time.format(format.time.input).toString();
 		old_time_input = time_has_input;
 		var time = display_time.format(format.time.display).toString();
 		old_time_input = time;
-		parentDiv.innerHTML += '<input autocomplete="off" class="time" name="'+time_input+'" value="'+time+'">';
+		parentDiv.innerHTML += '<input autocomplete="off" class="time" id="1$$'+date+'" name="'+time_input+'" value="'+time+'">';
 	}
 
 	if("date" in format){
@@ -502,10 +728,11 @@ function hideAndSetNew(element, index, array){
 
 /**
  * initialize content of date popup
- * @param element
+ * @param element the date popup
  */
 function initialiseDatePopup(element){
-	var date = moment(element.parentNode.querySelector('.date').value, format.date.display);
+	var output_date = getOutputFormat(element.parentNode.querySelector('.date'));
+	var date = moment(output_date, format.date.display);
 	var j = 0;
 	var order = [];
 
@@ -525,25 +752,26 @@ function initialiseDatePopup(element){
 		}
 	}
 
+
 	var day_number = date.format('D');
 	var day_name = date.format('dddd');
 	var month_number = date.format('M');
 	var month_name = date.format('MMMM');
 	var year = date.format('Y');
 
-	element.innerHTML += '<div class="date-in-popup" style="width:100%"></div>';
+	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date = element.querySelector('.date-in-popup');
 
 	var to_add_html = '<table style="width:100%;"><tr>'
 	for(i = 0; i < order.length; i++){
 		if(order[i] === 'Y'){
-			to_add_html += '<td class="year-popup"> '+year+'</td>';
+			to_add_html += '<td class="year-popup" onclick="clickOnLabel(this)"> '+year+'</td>';
 		}
 		if(order[i] === 'M'){
-			to_add_html += '<td class="month-popup"> '+month_name+'</td>';
+			to_add_html += '<td class="month-popup" onclick="clickOnLabel(this)"> '+month_name+'</td>';
 		}
 		if(order[i] === 'D'){
-			to_add_html += '<td class="day-popup"> '+day_name+' '+day_number+'</td>';
+			to_add_html += '<td class="day-popup" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</td>';
 		}
 	}
 	to_add_html += '</tr></table>';
@@ -555,22 +783,25 @@ function initialiseDatePopup(element){
 
 	if(contains(order, 'D')){
 		var date_selector_html = getHtmlForDateSelector(date);
-		element.innerHTML += date_selector_html;
+		div_selector.innerHTML += date_selector_html;
+		if(contains(order, 'M') || contains(order, 'Y')){
+			var date_selector = div_selector.querySelector('.day-selector');
+			date_selector.style.display="none";
+		}
 	}
-	else if(contains(order, 'M')){
+	if(contains(order, 'M')){
+		var month_selector_html = getHtmlForMonthSelector(date);
+		div_selector.innerHTML += month_selector_html;
 		// TODO month selector
-		if(!contains(order, 'D')){
-		// TODO month selector displayed by default
+		if(contains(order, 'Y')){
+			var month_selector = div_selector.querySelector('.month-selector');
+			month_selector.style.display="none";
 		}
 	}
-	else if(contains(order, 'Y')){
+	if(contains(order, 'Y')){
+		div_selector.innerHTML += '<table class="year-selector"><tr><th>year</th></tr><tr><td>Year</td></tr></table>';
 		// TODO year selector
-		if(!contains(order, 'D') && !contains(order, 'M')){
-			// TODO year selector displayed by default
-		}
 	}
-	console.log('test');
-
 }
 
 /**
@@ -590,28 +821,91 @@ function isDate(element){
 }
 
 /**
+ * When a td in month selector is clicked
+ * @param element the clicked td
+ */
+function monthSelectorClicked(element){
+	var table = element.parentNode.parentNode.parentNode;
+	var td_selectable = table.querySelectorAll('.td-month-selector');
+	td_selectable.forEach(function(element){
+		element.style.background = '';
+		element.style.borderRadius = '';
+		element.id = '';
+	});
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+	element.id = 'clicked';
+
+	var popup = table.parentNode.parentNode;
+	updateMonth(popup.parentNode, element.innerHTML);
+	if(!contains(format.date.edit.split(''), 'D')){
+		popup.style.display = "none";
+		popup.blur();
+	}
+	else{
+		displayPopup(popup);
+		var day_selector = popup.querySelector('.day-selector');
+		if(contains(format.date.edit.split(''), 'Y')){
+			var year_selector = popup.querySelector('.year-selector');
+			year_selector.style.display = "none";
+		}
+		table.style.display = "none";
+		day_selector.style.display = "";
+	}
+}
+
+/**
+ * When mouse is over the td
+ * @param element the td
+ */
+function mouseIsOverTd(element){
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+}
+
+/**
+ * When mouse leave td
+ * @param element the td
+ */
+function mouseLeftTd(element){
+	if(element.getAttribute('id') === 'clicked'){
+		element.style.background='bisque';
+		element.style.borderRadius='10000px';
+	}
+	else{
+		element.style.background='';
+		element.style.borderRadius='';
+	}
+}
+
+/**
  * Set the input format for the given element
  * @param element the input to set on edit format
  */
 function setInputFormat(element){
-	var value_element = element.value;
-	if(isDate(element)){
-		var to_edit = moment(value_element, format.date.display);
-		var new_value = to_edit.format(format.date.edit).toString();
-		if(!to_edit.isValid(new_value)){
-			new_value = old_date_input;
+	if(element.id.split('$$')[0] == 1){
+		var value_element = element.value;
+		if(isDate(element)){
+				var to_edit = moment(value_element, format.date.display);
+				var new_value = to_edit.format(format.date.edit).toString();
+				if(!to_edit.isValid(new_value)){
+					new_value = element.id.split('$$')[1];
+					new_value = moment(new_value, format.date.display);
+					new_value = new_value.format(format.date.edit).toString();
+				}
 		}
-		old_date_input = new_value;
-	}
-	else{
-		var to_edit = moment(value_element, format.time.display);
-		var new_value = to_edit.format(format.time.edit).toString();
-		if(!to_edit.isValid(new_value)){
-			new_value = old_time_input;
+		else{
+				var to_edit = moment(value_element, format.time.display);
+				var new_value = to_edit.format(format.time.edit).toString();
+				if(!to_edit.isValid(new_value)){
+					new_value = element.id.split('$$')[1];
+					new_value = moment(new_value, format.time.display);
+					new_value = new_value.format(format.time.edit).toString();
+				}
 		}
-		old_time_input = new_value;
+		element.value = new_value;
+		element.id = 0 + '$$' + new_value;
 	}
-	element.value = new_value;
 }
 
 /**
@@ -639,24 +933,29 @@ function setListenersTime(element){
  * @param element the input to set to output format
  */
 function setOutputFormat(element){
-	var value_element = element.value;
-	if(isDate(element)){
-		var to_display = moment(value_element, format.date.edit);
-		var new_value = to_display.format(format.date.display).toString();
-		if(!to_display.isValid(new_value)){
-			new_value = old_date_display;
+	if(element.id.split('$$')[0] == 0){
+		var value_element = element.value;
+		if(isDate(element)){
+			var to_display = moment(value_element, format.date.edit);
+			var new_value = to_display.format(format.date.display).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.date.edit);
+				new_value = new_value.format(format.date.display).toString();
+			}
 		}
-		old_date_display = new_value;
-	}
-	else{
-		var to_display = moment(value_element, format.time.edit);
-		var new_value = to_display.format(format.time.display).toString();
-		if(!to_display.isValid(new_value)){
-			new_value = old_time_display;
+		else{
+			var to_display = moment(value_element, format.time.edit);
+			var new_value = to_display.format(format.time.display).toString();
+			if(!to_display.isValid(new_value)){
+				new_value = element.id.split('$$')[1];
+				new_value = moment(new_value, format.time.edit);
+				new_value = new_value.format(format.time.display).toString();
+			}
 		}
-		old_time_display = new_value;
+		element.value = new_value;
+		element.id = 1 + '$$' + new_value;
 	}
-	element.value = new_value;
 
 }
 
@@ -674,5 +973,50 @@ function updateDate(element, value){
 	element.querySelector('.popup-date-picker').blur();
 }
 
+/**
+ * Update month
+ * @param element div containing date / time inputs
+ * @param value new value for months
+ */
+function updateMonth(element, value){
+	var date_input = element.querySelector('.date');
+	var date = moment(getInputFormat(date_input), format.date.edit);
+	date.month(value);
+	date_input.value = date.format(format.date.edit);
+	date_input.id = 0 + '$$' + date.format(format.date.edit);
+	updateDateRealInput(date_input);
+	var popup = element.querySelector('.popup-date-picker');
+	displayPopup(popup);
+}
 
+/**
+ * Update value of real (not displayed) input used for form
+ * @param element the input
+ */
+function updateDateRealInput(element){
+	var last_input = getParentInput(element);
+	var last_value = last_input.getAttribute('value');
+	var last_has_date = moment(last_value, original_format);
+	if(isDate(element)){
+
+		var new_date = getInputFormat(element);
+		new_date = moment(new_date, format.date.edit);
+
+		last_has_date.year(new_date.year());
+		last_has_date.month(new_date.month());
+		last_has_date.date(new_date.date());
+
+		last_input.setAttribute('value', last_has_date.format(original_format));
+	}
+	else{
+		var new_time = getInputFormat(element);
+
+		last_has_date.hour(new_time.hour());
+		last_has_date.minute(new_time.minute());
+		last_has_date.second(new_time.second());
+		last_has_date.millisecond(new_time.millisecond());
+
+		last_input.setAttribute('value', last_has_date.format(original_format));
+	}
+}
 
