@@ -62,11 +62,6 @@ var regex = {
 	}
 };
 
-var old_date_display;
-var old_date_input;
-var old_time_display;
-var old_time_input;
-
 var dates = document.querySelectorAll('.date_time');
 dates.forEach(hideAndSetNew);
 var dates_inputs = document.querySelectorAll('.date');
@@ -530,6 +525,11 @@ function getHtmlForDateSelector(date){
 	return html;
 }
 
+/**
+ * Get the html for the month selector for the given date
+ * @param date the current date
+ * @returns {string} the html
+ */
 function getHtmlForMonthSelector(date){
 	var html = '<table class="month-selector" style="width:100%; text-align:center">';
 
@@ -605,6 +605,60 @@ function getHtmlForMonthSelector(date){
 	return html;
 }
 
+/**
+ * Get the html for the year selector for the current date or the given decenie
+ * @param date the current year
+ * @param year an other decenie
+ * @returns {string} the html
+ */
+function getHtmlForYearSelector(date, year){
+	var html = '<table class="year-selector" style="width:100%; text-align:center">';
+
+
+	var current_year = date.format('YYYY');
+
+	if(!year){
+		year = current_year;
+	}
+
+	html += '<tr>';
+	html += '<th class="th-prev-ten" onclick="changeDecenie(this)">Prev 10</th>';
+	html += '<th></th><th></th>';
+	html += '<th class="th-next-ten" onclick="changeDecenie(this)">Next 10</th>';
+	html += '</tr>';
+
+	var first_displayed = year;
+	first_displayed = ((Math.floor(first_displayed / 10)) * 10)-1;
+
+	var number_per_line = 0;
+
+	html += '<tr>';
+	for(var i = 0; i < 12; i++){
+		if(number_per_line >= 4){
+			html += '</tr><tr>';
+			number_per_line = 0;
+		}
+		if(first_displayed == current_year){
+			html += '<td class="td-year-selector" id="clicked" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" onclick="yearSelectorClicked(this)">' + first_displayed + '</td>';
+		}
+		else{
+			html += '<td class="td-year-selector" id="" onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" onclick="yearSelectorClicked(this)">' + first_displayed + '</td>';
+		}
+		number_per_line++;
+		first_displayed++;
+	}
+
+	html += '</tr>';
+	html += '</table>';
+
+	return html;
+}
+
+/**
+ * Get output format of an input without changing the current displayed format
+ * @param element the input
+ * @returns {*} the value as output format
+ */
 function getOutputFormat(element){
 	if(isDate(element)){
 		if(element.id.split('$$')[0] == 0){
@@ -701,16 +755,12 @@ function hideAndSetNew(element, index, array){
 	parentDiv = parentDiv.querySelector('.date-time-picker');
 	if("date" in format){
 		var date_has_input = display_date.format(format.date.input).toString();
-		old_date_input = date_has_input;
 		var date = display_date.format(format.date.display).toString();
-		old_date_display = date;
 		parentDiv.innerHTML += '<input autocomplete="off" class="date" id="1$$'+date+'" name="'+date_input+'" value="'+date+'">';
 	}
 	if("time" in format){
 		var time_has_input = display_time.format(format.time.input).toString();
-		old_time_input = time_has_input;
 		var time = display_time.format(format.time.display).toString();
-		old_time_input = time;
 		parentDiv.innerHTML += '<input autocomplete="off" class="time" id="1$$'+date+'" name="'+time_input+'" value="'+time+'">';
 	}
 
@@ -783,23 +833,23 @@ function initialiseDatePopup(element){
 	if(contains(order, 'D')){
 		var date_selector_html = getHtmlForDateSelector(date);
 		div_selector.innerHTML += date_selector_html;
-		if(contains(order, 'M') || contains(order, 'Y')){
-			var date_selector = div_selector.querySelector('.day-selector');
-			date_selector.style.display="none";
-		}
 	}
 	if(contains(order, 'M')){
 		var month_selector_html = getHtmlForMonthSelector(date);
 		div_selector.innerHTML += month_selector_html;
-		// TODO month selector
-		if(contains(order, 'Y')){
+		if(contains(order, 'D')){
 			var month_selector = div_selector.querySelector('.month-selector');
 			month_selector.style.display="none";
 		}
 	}
 	if(contains(order, 'Y')){
-		div_selector.innerHTML += '<table class="year-selector"><tr><th>year</th></tr><tr><td>Year</td></tr></table>';
-		// TODO year selector
+		var year_selector_html = getHtmlForYearSelector(date);
+		div_selector.innerHTML += year_selector_html;
+
+		if(contains(order, 'D') || contains(order, 'M')){
+			var year_selector = div_selector.querySelector('.year-selector');
+			year_selector.style.display="none";
+		}
 	}
 }
 
@@ -875,6 +925,24 @@ function mouseLeftTd(element){
 		element.style.background='';
 		element.style.borderRadius='';
 	}
+}
+
+function changeDecenie(element){
+	var decenie;
+	if(element.className === 'th-prev-ten'){
+		decenie = -10;
+	}
+	else{
+		decenie = 10;
+	}
+
+	var table = element.parentNode.parentNode;
+	var all_td = table.querySelectorAll('td');
+	all_td.forEach(function (element) {
+		var year = parseInt(element.innerHTML);
+		year += decenie;
+		element.innerHTML = year;
+	});
 }
 
 /**
@@ -973,22 +1041,6 @@ function updateDate(element, value){
 }
 
 /**
- * Update month
- * @param element div containing date / time inputs
- * @param value new value for months
- */
-function updateMonth(element, value){
-	var date_input = element.querySelector('.date');
-	var date = moment(getInputFormat(date_input), format.date.edit);
-	date.month(value);
-	date_input.value = date.format(format.date.edit);
-	date_input.id = 0 + '$$' + date.format(format.date.edit);
-	updateDateRealInput(date_input);
-	var popup = element.querySelector('.popup-date-picker');
-	displayPopup(popup);
-}
-
-/**
  * Update value of real (not displayed) input used for form
  * @param element the input
  */
@@ -1017,5 +1069,72 @@ function updateDateRealInput(element){
 
 		last_input.setAttribute('value', last_has_date.format(original_format));
 	}
+}
+
+/**
+ * Update month
+ * @param element div containing date / time inputs
+ * @param value new value for months
+ */
+function updateMonth(element, value){
+	var date_input = element.querySelector('.date');
+	var date = moment(getInputFormat(date_input), format.date.edit);
+	date.month(value);
+	date_input.value = date.format(format.date.edit);
+	date_input.id = 0 + '$$' + date.format(format.date.edit);
+	updateDateRealInput(date_input);
+	var popup = element.querySelector('.popup-date-picker');
+	displayPopup(popup);
+}
+
+function updateYear(element, value){
+	var date_input = element.querySelector('.date');
+	var date = moment(getInputFormat(date_input), format.date.edit);
+	date.year(value);
+	date_input.value = date.format(format.date.edit);
+	date_input.id = 0 + '$$' + date.format(format.date.edit);
+	updateDateRealInput(date_input);
+	var popup = element.querySelector('.popup-date-picker');
+	displayPopup(popup);
+}
+
+/**
+ * When a year (a td) is clicked in the year selector
+ * @param element the clicked year (td)
+ */
+function yearSelectorClicked(element){
+	var table = element.parentNode.parentNode.parentNode;
+	var td_selectable = table.querySelectorAll('.td-year-selector');
+	td_selectable.forEach(function(element){
+		element.style.background = '';
+		element.style.borderRadius = '';
+		element.id = '';
+	});
+	element.style.background='lightgreen';
+	element.style.borderRadius='10000px';
+	element.id = 'clicked';
+	var popup = table.parentNode.parentNode;
+
+	updateYear(popup.parentNode, element.innerHTML);
+	if(!contains(format.date.edit.split(''), 'D') && !contains(format.date.edit.split(''), 'M')){
+		popup.style.display="none";
+		popup.blur();
+	}
+	else{
+		displayPopup(popup);
+		if(contains(format.date.edit.split(''), 'M')){
+			var month_selector = popup.querySelector('.month-selector');
+			var day_selector = popup.querySelector('.day-selector');
+			day_selector.style.display="none";
+			table.style.display="none";
+			month_selector.style.display="";
+		}
+		else{
+			var day_selector = popup.querySelector('.day-selector');
+			table.style.display="none";
+			day_selector.style.display="";
+		}
+	}
+
 }
 
