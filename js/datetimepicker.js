@@ -71,7 +71,7 @@ times_inputs.forEach(setListenersTime);
 var popups_date   = document.querySelectorAll('.popup-date-picker');
 var popups_time   = document.querySelectorAll('.popup-time-picker');
 
-popups_date.forEach(initialiseDatePopup);
+popups_date.forEach(function(element){initialiseDatePopup(element);});
 popups_time.forEach(initialiseTimePopup);
 dates_inputs.forEach(setOutputFormat);
 times_inputs.forEach(setOutputFormat);
@@ -176,6 +176,30 @@ function canBeValid(element){
 }
 
 /**
+ * Go to the next of previous month
+ * @param element clicked button
+ */
+function changeMonth(element){
+	var popup           = getPopupParent(element);
+	var input           = getInputOfPopup(popup)
+	var current_date    = moment(getInputFormat(input), format.date.edit);
+	var year            = (popup.querySelector('.year-popup').innerHTML).trim();
+	var month           = (popup.querySelector('.month-popup').innerHTML).trim();
+
+	current_date.year(parseInt(year));
+	current_date.month(month);
+
+	if(element.id == 'prev'){
+		current_date.add(-1, 'months');
+	}
+	else{
+		current_date.add(1, 'months');
+	}
+	console.log("before display " + current_date.format('DD-MM-YYYY'));
+	displayPopup(popup, current_date);
+}
+
+/**
  * Change from Am to Pm or from Pm to Am in hour selector
  * @param element the clicked button (Am or Pm)
  */
@@ -219,6 +243,7 @@ function changePartOfDay(element){
  */
 function clickOnLabel(element){
 	var parentDiv   = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+	updateLabels(parentDiv);
 	var selector    = parentDiv.querySelector('.selector');
 	var name        = element.className.split('-')[0];
 	var to_display  = selector.querySelector('.' + name + '-selector');
@@ -244,7 +269,7 @@ function contains(array, value){
  * When a day in clicked in date selector
  * @param element the clicked day (<td>)
  */
-function dateSelectorClicked(element){
+function dateSelectorClicked(element, displayed_date){
 	var table         = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.td-date-selector');
 	td_selectable.forEach(function(element){
@@ -258,7 +283,7 @@ function dateSelectorClicked(element){
 
 	var popup                     = getPopupParent(table);
 	popup.style.display           = "none";
-	updateDate(popup.parentNode, element.innerHTML);
+	updateDate(popup.parentNode, element.innerHTML, displayed_date);
 }
 
 /**
@@ -307,17 +332,28 @@ function displaySelector(element){
 		}
 	});
 	element.style.display = "";
+	var change_month = popup.querySelectorAll('.change-month');
+	if(element.className === 'day-selector'){
+		change_month.forEach(function(change){
+			change.style.display = "";
+		});
+	}
+	else {
+		change_month.forEach(function(change){
+			change.style.display = "none";
+		});
+	}
 }
 
 /**
  * Display the popup and set right content
  * @param popup the popup ton display
  */
-function displayPopup(popup){
+function displayPopup(popup, display_date){
 	popup.innerHTML     = '';
 	popup.style.display = '';
 	if(popup.className === 'popup-date-picker'){
-		initialiseDatePopup(popup);
+		initialiseDatePopup(popup, display_date);
 		setInputFormat(popup.parentNode.querySelector('.date'));
 	}
 	else{
@@ -332,7 +368,7 @@ function displayPopup(popup){
 function eventFocusOnDate(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-date-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -341,7 +377,7 @@ function eventFocusOnDate(element){
 function eventFocusOnTime(element){
 	setInputFormat(element);
 	var popup = element.parentNode.querySelector('.popup-time-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -357,7 +393,7 @@ function eventKeyUp(element){
 			if(element.value.match(regex)){
 				var popup           = element.parentNode.querySelector('.popup-date-picker');
 				popup.style.display = 'none';
-				displayPopup(popup);
+				displayPopup(popup, null);
 			}
 		}
 		else{
@@ -365,7 +401,7 @@ function eventKeyUp(element){
 			if(element.value.match(regex)){
 				var popup           = element.parentNode.querySelector('.popup-time-picker');
 				popup.style.display = 'none';
-				displayPopup(popup);
+				displayPopup(popup, null);
 			}
 		}
 		setInputFormat(element);
@@ -478,7 +514,7 @@ function getFullRegexForFormat(format){
  * @param date the date
  * @returns {string} the html
  */
-function getHtmlForDateSelector(date){
+function getHtmlForDateSelector(date, display_selection){
 
 	var monday    = moment.unix(345600).format('dddd');
 	var tuesday   = moment.unix(432000).format('dddd');
@@ -497,6 +533,8 @@ function getHtmlForDateSelector(date){
 	days[5]       = saturday;
 	days[6]       = sunday;
 
+	var display_date = moment(date);
+	display_date = display_date.format('X');
 
 	var first_day_of_month  = moment(date);
 	first_day_of_month.startOf('month');
@@ -574,15 +612,15 @@ function getHtmlForDateSelector(date){
 		html += '<tr>';
 		for(var j = 0; j < lines[i].length; j++){
 			if(lines[i][j][1] === 0){
-				if(lines[i][j][0] == date_day_number){
+				if(lines[i][j][0] == date_day_number && display_selection){
 					html += '<td class="td-date-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
 								+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-								+ 'onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</td>';
 				}
 				else{
 					html += '<td class="td-date-selector" id="" onmouseover="mouseIsOverTd(this)" '
 								+ 'onmouseout="mouseLeftTd(this)" '
-								+ 'onclick="dateSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</td>';
 				}
 			}
 			else{
@@ -616,22 +654,22 @@ function getHtmlForHourSelector(hour){
 
 		html += '<tr>'
 					+ '<td class="td-hour-am-picker" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">AM</td>'
+					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Am</td>'
 					+ '<td></td>'
 					+ '<td class="td-hour-pm-picker" id="clicked" '
 					+ 'style="background:bisque; border-radius:10000px;" '
 					+ 'onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" '
-					+ 'onclick="changePartOfDay(this)">PM</td>'
+					+ 'onclick="changePartOfDay(this)">Pm</td>'
 					+ '</tr>';
 	}
 	else{
 		html += '<tr>'
 					+ '<td class="td-hour-am-picker" id="clicked" '
 					+ 'style="background:bisque; border-radius:10000px;" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">AM</td>'
+					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Am</td>'
 					+ '<td></td>'
 					+ '<td class="td-hour-pm-picker" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">PM</td>'
+					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Pm</td>'
 					+ '</tr>';
 
 	}
@@ -729,35 +767,8 @@ function getHtmlForMinuteSelector(minute){
  * @returns {string} the html
  */
 function getHtmlForMonthSelector(date){
-	var html        = '<table class="month-selector" style="width:100%; text-align:center">';
-
-	var january     = moment.unix(0).format('MMMM');
-	var february    = moment.unix(2678400).format('MMMM');
-	var march       = moment.unix(5097600).format('MMMM');
-	var april       = moment.unix(7776000).format('MMMM');
-	var may         = moment.unix(10368000).format('MMMM');
-	var june        = moment.unix(13046400).format('MMMM');
-	var july        = moment.unix(15638400).format('MMMM');
-	var august      = moment.unix(18316800).format('MMMM');
-	var september   = moment.unix(20995200).format('MMMM');
-	var october     = moment.unix(23587200).format('MMMM');
-	var november    = moment.unix(26265600).format('MMMM');
-	var december    = moment.unix(28857600).format('MMMM');
-
-	var months      = [];
-	months[0]       = january;
-	months[1]       = february;
-	months[2]       = march;
-	months[3]       = april;
-	months[4]       = may;
-	months[5]       = june;
-	months[6]       = july;
-	months[7]       = august;
-	months[8]       = september;
-	months[9]       = october;
-	months[10]      = november;
-	months[11]      = december;
-
+	var html                = '<table class="month-selector" style="width:100%; text-align:center">';
+	var months              =  getMonths();
 	var current_month_name  = date.format('MMMM');
 	var lines               = [];
 
@@ -913,7 +924,7 @@ function getInputFormat(element){
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
 				new_value = moment(new_value, format.date.display);
-				new_value = new_value.format(format.date.edit).toString();
+				new_value = new_value.format(format.date.edit);
 			}
 			return new_value;
 		}
@@ -922,11 +933,11 @@ function getInputFormat(element){
 	else{
 		if(element.id.split('$$')[0] == 1){
 			var to_display  = moment(element.value, format.time.display);
-			var new_value   = to_display.format(format.time.edit).toString();
+			var new_value   = to_display.format(format.time.edit);
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
 				new_value = moment(new_value, format.time.display);
-				new_value = new_value.format(format.time.edit).toString();
+				new_value = new_value.format(format.time.edit);
 			}
 			return new_value;
 		}
@@ -945,6 +956,36 @@ function getInputOfPopup(element){
 	else{
 		return element.parentNode.querySelector('.time');
 	}
+}
+
+function getMonths(){
+	var january     = moment.unix(0).format('MMMM');
+	var february    = moment.unix(2678400).format('MMMM');
+	var march       = moment.unix(5097600).format('MMMM');
+	var april       = moment.unix(7776000).format('MMMM');
+	var may         = moment.unix(10368000).format('MMMM');
+	var june        = moment.unix(13046400).format('MMMM');
+	var july        = moment.unix(15638400).format('MMMM');
+	var august      = moment.unix(18316800).format('MMMM');
+	var september   = moment.unix(20995200).format('MMMM');
+	var october     = moment.unix(23587200).format('MMMM');
+	var november    = moment.unix(26265600).format('MMMM');
+	var december    = moment.unix(28857600).format('MMMM');
+
+	var months      = [];
+	months[0]       = january;
+	months[1]       = february;
+	months[2]       = march;
+	months[3]       = april;
+	months[4]       = may;
+	months[5]       = june;
+	months[6]       = july;
+	months[7]       = august;
+	months[8]       = september;
+	months[9]       = october;
+	months[10]      = november;
+	months[11]      = december;
+	return months;
 }
 
 /**
@@ -1082,7 +1123,7 @@ function hourSelectorClicked(element){
 		popup.blur();
 	}
 	else{
-		displayPopup(popup);
+		displayPopup(popup, null);
 		if(contains(format.time.edit.split(''), 'm')){
 			var minute_selector = popup.querySelector('.selector').querySelector('.minute-selector');
 			displaySelector(minute_selector);
@@ -1098,9 +1139,19 @@ function hourSelectorClicked(element){
  * initialize content of date popup
  * @param element the date popup
  */
-function initialiseDatePopup(element){
-	var output_date   = getOutputFormat(element.parentNode.querySelector('.date'));
-	var date          = moment(output_date, format.date.display);
+function initialiseDatePopup(element, display_date){
+	var output_date       = getOutputFormat(element.parentNode.querySelector('.date'));
+	var date              = moment(output_date, format.date.display);
+	var display_selection = false;
+
+	if(date.isSame(display_date)){
+		display_selection = true;
+	}
+
+	if(!display_date){
+		display_date      = date;
+		display_selection = true;
+	}
 	var j             = 0;
 	var order         = [];
 
@@ -1120,36 +1171,37 @@ function initialiseDatePopup(element){
 		}
 	}
 
-	var day_number    = date.format('D');
-	var day_name      = date.format('dddd');
-	var month_number  = date.format('M');
-	var month_name    = date.format('MMMM');
-	var year          = date.format('Y');
+	var day_number    = display_date.format('D');
+	var day_name      = display_date.format('dddd');
+	var month_name    = display_date.format('MMMM');
+	var year          = display_date.format('Y');
 
 	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date      = element.querySelector('.date-in-popup');
 
-	var to_add_html   = '<table class="selector-display" style="width:100%;"><tr>'
+	var to_add_html   = '<table class="selector-display" style="width:100%; text-align:center"><tr>'
 	for(i = 0; i < order.length; i++){
 		if(order[i] === 'Y'){
 			to_add_html += '<td class="year-popup" onclick="clickOnLabel(this)"> '+year+'</td>';
 		}
 		if(order[i] === 'M'){
+			to_add_html += '<td class="change-month" style="display:none" id="prev" onclick="changeMonth(this)">\<</td>';
 			to_add_html += '<td class="month-popup" onclick="clickOnLabel(this)"> '+month_name+'</td>';
+			to_add_html += '<td class="change-month" style="display:none" id="next" onclick="changeMonth(this)">\></td>';
 		}
 		if(order[i] === 'D'){
 			to_add_html += '<td class="day-popup" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</td>';
 		}
 	}
 
-	to_add_html         += '</tr></table>';
+	to_add_html         += '</tr></table><br />';
 	div_date.innerHTML  += to_add_html;
 
 	element.innerHTML   += '<div class="selector"></div>';
 	var div_selector    = element.querySelector('.selector');
 
 	if(contains(order, 'D')){
-		var date_selector_html = getHtmlForDateSelector(date);
+		var date_selector_html = getHtmlForDateSelector(display_date, display_selection);
 		div_selector.innerHTML += date_selector_html;
 	}
 	if(contains(order, 'M')){
@@ -1188,22 +1240,28 @@ function initialiseTimePopup(element){
 
 	element.innerHTML   += '<div class="time-in-popup"></div>';
 	var div_time        = element.querySelector('.time-in-popup');
-	var to_add_html     = '<table style="width:100%;" class="selector-display"><tr>';
+	var to_add_html     = '<table style="width:100%; text-align:center" class="selector-display"><tr>';
 
 	if(contains(format.time.edit.split(''), 'H')){
 		hour        = time.format('HH');
 		to_add_html += '<td class="hour-popup" onclick="clickOnLabel(this)">' + hour + '</td>';
+		if(contains(format.time.edit.split(''), 'm') || contains(format.time.edit.split(''), 's')){
+			to_add_html += '<td> : </td>';
+		}
 	}
 	if(contains(format.time.edit.split(''), 'm')){
 		minute      = time.format('mm');
 		to_add_html += '<td class="minute-popup" onclick="clickOnLabel(this)">' + minute + '</td>';
+		if(contains(format.time.edit.split(''), 's')){
+			to_add_html += '<td> : </td>';
+		}
 	}
 	if(contains(format.time.edit.split(''), 's')){
 		second      = time.format('ss');
 		to_add_html += '<td class="second-popup" onclick="clickOnLabel(this)">' + second + '</td>';
 	}
 
-	to_add_html         += '</tr></table>';
+	to_add_html         += '</tr></table><br />';
 	div_time.innerHTML  += to_add_html;
 	element.innerHTML   += '<div class="selector"></div>';
 	var div_selector    = element.querySelector('.selector');
@@ -1266,7 +1324,7 @@ function minuteSelectorClicked(element){
 		popup.blur();
 	}
 	else{
-		displayPopup(popup);
+		displayPopup(popup, null);
 		var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
 		displaySelector(second_selector);
 	}
@@ -1295,7 +1353,7 @@ function monthSelectorClicked(element){
 		popup.blur();
 	}
 	else{
-		displayPopup(popup);
+		displayPopup(popup, null);
 		var day_selector = popup.querySelector('.day-selector');
 		displaySelector(day_selector);
 	}
@@ -1456,10 +1514,15 @@ function setOutputFormat(element){
  * @param element the div containing inputs
  * @param value the new value to set for days
  */
-function updateDate(element, value){
-	var date_input    = element.querySelector('.date');
-	var date          = moment(getInputFormat(date_input), format.date.edit);
+function updateDate(element, value, displayed_date){
+	var displayed_date  = moment.unix(displayed_date);
+	var date_input      = element.querySelector('.date');
+	var date            = moment(getInputFormat(date_input), format.date.edit);
+	console.log(displayed_date);
+	console.log(date_input)
 	date.date(value);
+	date.month(displayed_date.month());
+	date.year(displayed_date.year());
 	date_input.value  = date.format(format.date.edit);
 	eventLostFocusOnDate(date_input, null);
 	element.querySelector('.popup-date-picker').blur();
@@ -1510,7 +1573,30 @@ function updateHour(element, value){
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
 	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
+}
+
+/**
+ * Re-set value of label from input
+ * @param element popup
+ */
+function updateLabels(element){
+	var div_labels = element.querySelector('.date-in-popup');
+	if(div_labels){
+		var input = getInputOfPopup(element);
+		var value = getOutputFormat(input);
+		var date  = moment(value, format.date.display);
+		var month = div_labels.querySelector('.month-popup');
+		var year  = div_labels.querySelector('.year-popup');
+		console.log(date);
+
+		if(month){
+			month.innerHTML = ' ' + date.format('MMMM');
+		}
+		if(year){
+			year.innerHTML = ' ' + date.format('YYYY');
+		}
+	}
 }
 
 /**
@@ -1526,7 +1612,7 @@ function updateMinute(element, value){
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
 	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -1542,7 +1628,7 @@ function updateMonth(element, value){
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
 	updateDateRealInput(date_input);
 	var popup         = element.querySelector('.popup-date-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -1558,7 +1644,7 @@ function updateSecond(element, value){
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
 	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -1574,7 +1660,7 @@ function updateYear(element, value){
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
 	updateDateRealInput(date_input);
 	var popup         = element.querySelector('.popup-date-picker');
-	displayPopup(popup);
+	displayPopup(popup, null);
 }
 
 /**
@@ -1600,7 +1686,7 @@ function yearSelectorClicked(element){
 		popup.blur();
 	}
 	else{
-		displayPopup(popup);
+		displayPopup(popup, null);
 		if(contains(format.date.edit.split(''), 'M')){
 			var month_selector = popup.querySelector('.month-selector');
 			displaySelector(month_selector);
