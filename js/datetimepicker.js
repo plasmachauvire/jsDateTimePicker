@@ -13,6 +13,14 @@ var format = {
 };
 var original_format = 'DD/MM/YYYY hh:mm';
 
+// CONFIGURATION
+var live_check_input_date                       = 1;
+var live_check_input_time                       = 1;
+var auto_redirect_to_next_when_select_date      = 1;
+var auto_redirect_to_next_when_select_time      = 1;
+var auto_close_when_more_precise_date_selected  = 1;
+var auto_close_when_more_precise_time_selected  = 1;
+
 /**
  * Used to check if date / time user in being writing are correct
  */
@@ -294,8 +302,10 @@ function dateSelectorClicked(element, displayed_date){
 	});
 	element.id                    = 'clicked';
 
-	var popup                     = getPopupParent(table);
-	popup.style.display           = "none";
+	if(auto_close_when_more_precise_date_selected){
+		var popup                     = getPopupParent(table);
+		popup.style.display           = "none";
+	}
 	updateDate(popup.parentNode, element.innerHTML, displayed_date);
 }
 
@@ -393,10 +403,36 @@ function eventFocusOnTime(element){
  * When user take out is finger of a key (key pushed is already written at this moment)
  */
 function eventKeyUp(element){
-	if(canBeValid(element)){
-		element.style.borderColor = '';
-		element.style.borderWidth = '';
-		element.style.borderStyle = '';
+	if((isDate(element) && live_check_input_date) || (!isDate(element) && live_check_input_time)){
+		if(canBeValid(element)){
+			element.style.borderColor = '';
+			element.style.borderWidth = '';
+			element.style.borderStyle = '';
+			if(isDate(element)){
+				var regex = getFullRegexForFormat(format.date.edit);
+				if(element.value.match(regex)){
+					var popup           = element.parentNode.querySelector('.popup-date-picker');
+					popup.style.display = 'none';
+					displayPopup(popup, null);
+				}
+			}
+			else{
+				var regex = getFullRegexForFormat(format.time.edit);
+				if(element.value.match(regex)){
+					var popup           = element.parentNode.querySelector('.popup-time-picker');
+					popup.style.display = 'none';
+					displayPopup(popup, null);
+				}
+			}
+			setInputFormat(element);
+		}
+		else{
+			element.style.borderColor = 'red';
+			element.style.borderWidth = '2px';
+			element.style.borderStyle = 'solid';
+		}
+	}
+	else{
 		if(isDate(element)){
 			var regex = getFullRegexForFormat(format.date.edit);
 			if(element.value.match(regex)){
@@ -414,11 +450,6 @@ function eventKeyUp(element){
 			}
 		}
 		setInputFormat(element);
-	}
-	else{
-		element.style.borderColor = 'red';
-		element.style.borderWidth = '2px';
-		element.style.borderStyle = 'solid';
 	}
 }
 
@@ -1106,18 +1137,26 @@ function hourSelectorClicked(element){
 	updateHour(popup.parentNode, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 'm') && !contains(format.time.edit.split(''), 's')){
-		popup.style.display = "none";
-		popup.blur();
+		if(auto_close_when_more_precise_time_selected){
+			popup.style.display = "none";
+			popup.blur();
+		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(contains(format.time.edit.split(''), 'm')){
-			var minute_selector = popup.querySelector('.selector').querySelector('.minute-selector');
-			displaySelector(minute_selector);
+		if(auto_redirect_to_next_when_select_time){
+			if(contains(format.time.edit.split(''), 'm')){
+				var minute_selector = popup.querySelector('.selector').querySelector('.minute-selector');
+				displaySelector(minute_selector);
+			}
+			else{
+				var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
+				displaySelector(second_selector);
+			}
 		}
 		else{
-			var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
-			displaySelector(second_selector);
+			var hour_selector = popup.querySelector('.selector').querySelector('.hour-selector');
+			displaySelector(hour_selector);
 		}
 	}
 }
@@ -1303,13 +1342,21 @@ function minuteSelectorClicked(element){
 	updateMinute(popup.parentNode, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 's')){
-		popup.style.display = "none";
-		popup.blur();
+		if(auto_close_when_more_precise_time_selected){
+			popup.style.display = "none";
+			popup.blur();
+		}
 	}
 	else{
 		displayPopup(popup, null);
-		var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
-		displaySelector(second_selector);
+		if(auto_redirect_to_next_when_select_time){
+			var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
+			displaySelector(second_selector);
+		}
+		else{
+			var minute_selector = popup.querySelector('.selector').querySelector('.minute-selector');
+			displaySelector(minute_selector);
+		}
 	}
 }
 
@@ -1328,13 +1375,21 @@ function monthSelectorClicked(element){
 	var popup                   = getPopupParent(table);
 	updateMonth(popup.parentNode, element.innerHTML);
 	if(!contains(format.date.edit.split(''), 'D')){
-		popup.style.display = "none";
-		popup.blur();
+		if(auto_close_when_more_precise_date_selected){
+			popup.style.display = "none";
+			popup.blur();
+		}
 	}
 	else{
 		displayPopup(popup, null);
-		var day_selector = popup.querySelector('.day-selector');
-		displaySelector(day_selector);
+		if(auto_redirect_to_next_when_select_date){
+			var day_selector = popup.querySelector('.day-selector');
+			displaySelector(day_selector);
+		}
+		else{
+			var month_selector = popup.querySelector('.month-selector');
+			displaySelector(month_selector);
+		}
 	}
 }
 
@@ -1353,8 +1408,14 @@ function secondSelectorClicked(element){
 
 	updateSecond(popup.parentNode, element.innerHTML);
 
-	popup.style.display         = "none";
-	popup.blur();
+	if(auto_close_when_more_precise_time_selected){
+		popup.style.display         = "none";
+		popup.blur();
+	}
+	else{
+		var second_selector = popup.querySelector('.second-selector');
+		displaySelector(second_selector);
+	}
 }
 
 /**
@@ -1604,18 +1665,26 @@ function yearSelectorClicked(element){
 
 	updateYear(popup.parentNode, element.innerHTML);
 	if(!contains(format.date.edit.split(''), 'D') && !contains(format.date.edit.split(''), 'M')){
-		popup.style.display = "none";
-		popup.blur();
+		if(auto_close_when_more_precise_date_selected){
+			popup.style.display = "none";
+			popup.blur();
+		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(contains(format.date.edit.split(''), 'M')){
-			var month_selector = popup.querySelector('.month-selector');
-			displaySelector(month_selector);
+		if(auto_redirect_to_next_when_select_date){
+			if(contains(format.date.edit.split(''), 'M')){
+				var month_selector = popup.querySelector('.month-selector');
+				displaySelector(month_selector);
+			}
+			else{
+				var day_selector = popup.querySelector('.day-selector');
+				displaySelector(day_selector);
+			}
 		}
 		else{
-			var day_selector = popup.querySelector('.day-selector');
-			displaySelector(day_selector);
+			var year_selector = popup.querySelector('.year-selector');
+			displaySelector(year_selector);
 		}
 	}
 }
