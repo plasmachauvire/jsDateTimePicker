@@ -176,6 +176,29 @@ function canBeValid(element){
 }
 
 /**
+ * Change decenie on year-selector view (add or sub 10 years)
+ * @param element the clicked button "prev 10" or "next 10"
+ */
+function changeDecenie(element){
+	var decenie;
+	if(element.className === 'label-prev-ten'){
+		decenie = -10;
+	}
+	else{
+		decenie = 10;
+	}
+
+	var table   = element.parentNode.parentNode.parentNode.parentNode;
+	console.log(table);
+	var all_td  = table.querySelectorAll('.label-year-selector');
+	all_td.forEach(function (element) {
+		var year          = parseInt(element.innerHTML);
+		year              += decenie;
+		element.innerHTML = year;
+	});
+}
+
+/**
  * Go to the next of previous month
  * @param element clicked button
  */
@@ -195,7 +218,6 @@ function changeMonth(element){
 	else{
 		current_date.add(1, 'months');
 	}
-	console.log("before display " + current_date.format('DD-MM-YYYY'));
 	displayPopup(popup, current_date);
 }
 
@@ -204,13 +226,13 @@ function changeMonth(element){
  * @param element the clicked button (Am or Pm)
  */
 function changePartOfDay(element){
-	var table   = element.parentNode.parentNode;
-	var pm      = table.querySelectorAll('.pm-hour-td');
-	var am      = table.querySelectorAll('.am-hour-td');
+	var table   = element.parentNode.parentNode.parentNode;
+	var pm      = table.querySelectorAll('.pm-hour-tr');
+	var am      = table.querySelectorAll('.am-hour-tr');
 	var other_td;
 
 	if(element.className === 'td-hour-am-picker'){
-		other_td = element.parentNode.querySelector('.td-hour-pm-picker');
+		other_td = element.parentNode.parentNode.querySelector('.td-hour-pm-picker');
 		pm.forEach(function(element){
 			element.style.display = 'none';
 		});
@@ -219,7 +241,7 @@ function changePartOfDay(element){
 		});
 	}
 	else{
-		other_td = element.parentNode.querySelector('.td-hour-am-picker');
+		other_td = element.parentNode.parentNode.querySelector('.td-hour-am-picker');
 		am.forEach(function(element){
 			element.style.display = 'none';
 		});
@@ -228,21 +250,16 @@ function changePartOfDay(element){
 		});
 	}
 
-	other_td.style.background   = '';
-	other_td.style.borderRadius = '';
-	other_td.id                 = '';
-
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
-	element.id                  = 'clicked';
+	other_td.id               = 'basic';
+	element.id                = 'clicked';
 }
 
 /**
- * When a label in popup ins clicked
+ * When a label in popup is clicked
  * @param element the clicked label
  */
 function clickOnLabel(element){
-	var parentDiv   = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+	var parentDiv   = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
 	updateLabels(parentDiv);
 	var selector    = parentDiv.querySelector('.selector');
 	var name        = element.className.split('-')[0];
@@ -267,18 +284,14 @@ function contains(array, value){
 
 /**
  * When a day in clicked in date selector
- * @param element the clicked day (<td>)
+ * @param element the clicked day (<label>)
  */
 function dateSelectorClicked(element, displayed_date){
 	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-date-selector');
+	var td_selectable = table.querySelectorAll('.label-date-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background      = 'lightgreen';
-	element.style.borderRadius    = '10000px';
 	element.id                    = 'clicked';
 
 	var popup                     = getPopupParent(table);
@@ -317,18 +330,14 @@ function displaySelector(element){
 		element.style.display = "none";
 	});
 
-	var all_labels      = display_part.querySelectorAll('td');
+	var all_labels      = display_part.querySelectorAll('label');
 	all_labels.forEach(function (label){
 		var name_to_keep = element.className.split('-')[0];
 		if(label.className.split('-')[0] === name_to_keep){
-			label.style.borderRadius  = '10000px';
-			label.style.background    = 'FloralWhite';
-			label.style.opacity       = '0.5';
+			label.id = 'display-selected';
 		}
 		else{
-			label.style.borderRadius  = '';
-			label.style.background    = '';
-			label.style.opacity       = '';
+			label.id = 'display-basic';
 		}
 	});
 	element.style.display = "";
@@ -555,15 +564,15 @@ function getHtmlForDateSelector(date, display_selection){
 		}
 	}
 
-	var html  = '<table class="day-selector" style="width:100%; text-align:center">'
-						+   '<tr>'
-						+     '<th>'+days[0].split('')[0]+'</th>'
-						+     '<th>'+days[1].split('')[0]+'</th>'
-						+     '<th>'+days[2].split('')[0]+'</th>'
-						+     '<th>'+days[3].split('')[0]+'</th>'
-						+     '<th>'+days[4].split('')[0]+'</th>'
-						+     '<th>'+days[5].split('')[0]+'</th>'
-						+     '<th>'+days[6].split('')[0]+'</th>'
+	var html  = '<table class="day-selector" id="table-selector">'
+						+   '<tr id="tr-day-columns-names">'
+						+     '<th id="td-day-column-name">'+days[0].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[1].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[2].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[3].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[4].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[5].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[6].split('')[0]+'</th>'
 						+   '</tr>';
 
 
@@ -613,19 +622,16 @@ function getHtmlForDateSelector(date, display_selection){
 		for(var j = 0; j < lines[i].length; j++){
 			if(lines[i][j][1] === 0){
 				if(lines[i][j][0] == date_day_number && display_selection){
-					html += '<td class="td-date-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-								+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector"><label class="label-date-selector" id="clicked" '
+								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</label></td>';
 				}
 				else{
-					html += '<td class="td-date-selector" id="" onmouseover="mouseIsOverTd(this)" '
-								+ 'onmouseout="mouseLeftTd(this)" '
-								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</td>';
+					html += '<td class="td-date-selector"><label class="label-date-selector" id="basic" '
+								+ 'onclick="dateSelectorClicked(this, '+display_date+')">' + lines[i][j][0] + '</label></td>';
 				}
 			}
 			else{
-				html += '<td class="disabled-td-date-selector" '
-							+ 'style="color:#D3D1D4">' + lines[i][j][0] + '</td>';
+				html += '<td class="td-date-selector-disabled"><label class="disabled-label">' + lines[i][j][0] + '</label></td>';
 			}
 		}
 		html += '</tr>';
@@ -643,7 +649,7 @@ function getHtmlForDateSelector(date, display_selection){
  * @returns {string} the full html
  */
 function getHtmlForHourSelector(hour){
-	var html = '<table class="hour-selector" style="width:100%; text-align:center">';
+	var html = '<table class="hour-selector" id="table-selector">';
 
 
 	var display_am = '';
@@ -653,61 +659,56 @@ function getHtmlForHourSelector(hour){
 		display_am = 'none';
 
 		html += '<tr>'
-					+ '<td class="td-hour-am-picker" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Am</td>'
+					+ '<td><label class="td-hour-am-picker" id="basic" '
+					+ 'onclick="changePartOfDay(this)">Am</label></td>'
 					+ '<td></td>'
-					+ '<td class="td-hour-pm-picker" id="clicked" '
-					+ 'style="background:bisque; border-radius:10000px;" '
-					+ 'onmouseover="mouseIsOverTd(this)" onmouseout="mouseLeftTd(this)" '
-					+ 'onclick="changePartOfDay(this)">Pm</td>'
+					+ '<td><label class="td-hour-pm-picker" id="clicked" '
+					+ 'onclick="changePartOfDay(this)">Pm</label></td>'
 					+ '</tr>';
 	}
 	else{
 		html += '<tr>'
-					+ '<td class="td-hour-am-picker" id="clicked" '
-					+ 'style="background:bisque; border-radius:10000px;" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Am</td>'
+					+ '<td><label class="td-hour-am-picker" id="clicked" '
+					+ 'onclick="changePartOfDay(this)">Am</label></td>'
 					+ '<td></td>'
-					+ '<td class="td-hour-pm-picker" onmouseover="mouseIsOverTd(this)" '
-					+ 'onmouseout="mouseLeftTd(this)" onclick="changePartOfDay(this)">Pm</td>'
+					+ '<td><label class="td-hour-pm-picker" id="basic"  '
+					+ 'onclick="changePartOfDay(this)">Pm</label></td>'
 					+ '</tr>';
 
 	}
 
 	var number_per_line = 0;
-	html += '<tr class="am-hour-td" style="display:'+display_am+'">';
+	html += '<tr class="am-hour-tr" style="display:'+display_am+'">';
 	for(var i = 0; i < 12; i++){
 		if(number_per_line >= 3){
-			html += '</tr><tr class="am-hour-td" style="display:'+display_am+'">';
+			html += '</tr><tr class="am-hour-tr" style="display:'+display_am+'">';
 			number_per_line = 0;
 		}
 		if(i === parseInt(hour)){
-			html += '<td class="td-hour-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-						+ 'onclick="hourSelectorClicked(this)">' + i + '</td>';
+			html += '<td class="td-hour-selector"><label class="label-hour-selector" id="clicked" '
+						+ 'onclick="hourSelectorClicked(this)">' + i + '</label></td>';
 		}
 		else{
-			html += '<td class="td-hour-selector" id="" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" onclick="hourSelectorClicked(this)">' + i + '</td>';
+			html += '<td class="td-hour-selector"><label class="label-hour-selector" id="basic" '
+						+ 'onclick="hourSelectorClicked(this)">' + i + '</label></td>';
 		}
 		number_per_line++;
 	}
 
-	html            += '<tr class="pm-hour-td" style="display:'+display_pm+'">';
+	html            += '<tr class="pm-hour-tr" style="display:'+display_pm+'">';
 	number_per_line = 0;
 	for(var i = 12; i < 24; i++){
 		if(number_per_line >= 3){
-			html += '</tr><tr class="pm-hour-td" style="display:'+display_pm+'">';
+			html += '</tr><tr class="pm-hour-tr" style="display:'+display_pm+'">';
 			number_per_line = 0;
 		}
 		if(i === parseInt(hour)){
-			html += '<td class="td-hour-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-						+ 'onclick="hourSelectorClicked(this)">' + i + '</td>';
+			html += '<td class="td-hour-selector"><label class="label-hour-selector" id="clicked" '
+						+ 'onclick="hourSelectorClicked(this)">' + i + '</label></td>';
 		}
 		else{
-			html += '<td class="td-hour-selector" id="" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" onclick="hourSelectorClicked(this)">' + i + '</td>';
+			html += '<td class="td-hour-selector"><label class="label-hour-selector" id="basic" '
+						+ 'onclick="hourSelectorClicked(this)">' + i + '</label></td>';
 		}
 		number_per_line++;
 	}
@@ -723,7 +724,7 @@ function getHtmlForHourSelector(hour){
  * @returns {string} the full html
  */
 function getHtmlForMinuteSelector(minute){
-	var html = '<table class="minute-selector" style="width:100%; text-align:center">';
+	var html = '<table class="minute-selector" id="table-selector">';
 
 	var on_gap;
 	var difference = minute%5;
@@ -745,14 +746,12 @@ function getHtmlForMinuteSelector(minute){
 			number_per_line = 0;
 		}
 		if((5 * i) === on_gap){
-			html += '<td class="td-minute-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-						+ 'onclick="minuteSelectorClicked(this)">' + (i * 5) + '</td>';
+			html += '<td class="td-minute-selector"><label class="label-minute-selector" id="clicked" '
+						+ 'onclick="minuteSelectorClicked(this)">' + (i * 5) + '</label></td>';
 		}
 		else{
-			html += '<td class="td-minute-selector" id="" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" '
-						+ 'onclick="minuteSelectorClicked(this)">' + (i * 5) + '</td>';
+			html += '<td class="td-minute-selector"><label class="label-minute-selector" id="basic" '
+						+ 'onclick="minuteSelectorClicked(this)">' + (i * 5) + '</label></td>';
 		}
 		number_per_line++;
 	}
@@ -767,7 +766,7 @@ function getHtmlForMinuteSelector(minute){
  * @returns {string} the html
  */
 function getHtmlForMonthSelector(date){
-	var html                = '<table class="month-selector" style="width:100%; text-align:center">';
+	var html                = '<table class="month-selector" id="table-selector">';
 	var months              =  getMonths();
 	var current_month_name  = date.format('MMMM');
 	var lines               = [];
@@ -800,14 +799,12 @@ function getHtmlForMonthSelector(date){
 		html += '<tr>';
 		for(var j = 0; j < lines[i].length; j++){
 			if(lines[i][j][1] === 1){
-				html += '<td class="td-month-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-							+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-							+ 'onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+				html += '<td class="td-month-selector"><label class="label-month-selector" id="clicked" '
+							+ 'onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</label></td>';
 			}
 			else{
-				html += '<td class="td-month-selector" id="" onmouseover="mouseIsOverTd(this)" '
-							+ 'onmouseout="mouseLeftTd(this)" '
-							+ 'onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</td>';
+				html += '<td class="td-month-selector"><label class="label-month-selector" id="basic" '
+							+ 'onclick="monthSelectorClicked(this)">' + lines[i][j][0] + '</label></td>';
 			}
 		}
 		html += '</tr>';
@@ -823,7 +820,7 @@ function getHtmlForMonthSelector(date){
  * @returns {string} the full html
  */
 function getHtmlForSecondSelector(second){
-	var html        = '<table class="second-selector" style="width:100%; text-align:center">';
+	var html        = '<table class="second-selector" id="table-selector">';
 	var on_gap;
 	var difference  = second%5;
 	if(difference >= 3){
@@ -844,14 +841,12 @@ function getHtmlForSecondSelector(second){
 			number_per_line = 0;
 		}
 		if((5 * i) === on_gap){
-			html += '<td class="td-second-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-						+ 'onclick="secondSelectorClicked(this)">' + (i * 5) + '</td>';
+			html += '<td class="td-second-selector"><label class="label-second-selector" id="clicked" '
+						+ 'onclick="secondSelectorClicked(this)">' + (i * 5) + '</label></td>';
 		}
 		else{
-			html += '<td class="td-second-selector" id="" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" '
-						+ 'onclick="secondSelectorClicked(this)">' + (i * 5) + '</td>';
+			html += '<td class="td-second-selector"><label class="label-second-selector" id="basic" '
+						+ 'onclick="secondSelectorClicked(this)">' + (i * 5) + '</label></td>';
 		}
 		number_per_line++;
 	}
@@ -868,7 +863,7 @@ function getHtmlForSecondSelector(second){
  * @returns {string} the html
  */
 function getHtmlForYearSelector(date, year){
-	var html          = '<table class="year-selector" style="width:100%; text-align:center">';
+	var html          = '<table class="year-selector" id="table-selector">';
 	var current_year  = date.format('YYYY');
 
 	if(!year){
@@ -876,10 +871,10 @@ function getHtmlForYearSelector(date, year){
 	}
 
 	html  += '<tr>'
-				  + '<th class="th-prev-ten" onclick="changeDecenie(this)">Prev 10</th>'
+				  + '<th class="th-prev-ten"><label class="label-prev-ten" id="basic" onclick="changeDecenie(this)">Prev 10</label></th>'
 				  + '<th></th>'
 					+ '<th></th>'
-					+ '<th class="th-next-ten" onclick="changeDecenie(this)">Next 10</th>'
+					+ '<th class="th-next-ten"><label class="label-next-ten" id="basic" onclick="changeDecenie(this)">Next 10</label></th>'
 			   + '</tr>';
 
 	var first_displayed = year;
@@ -892,14 +887,12 @@ function getHtmlForYearSelector(date, year){
 			number_per_line = 0;
 		}
 		if(first_displayed == current_year){
-			html += '<td class="td-year-selector" id="clicked" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" style="background:bisque; border-radius:10000px;" '
-						+ 'onclick="yearSelectorClicked(this)">' + first_displayed + '</td>';
+			html += '<td class="td-year-selector"><label class="label-year-selector" id="clicked" '
+						+ 'onclick="yearSelectorClicked(this)">' + first_displayed + '</label></td>';
 		}
 		else{
-			html += '<td class="td-year-selector" id="" onmouseover="mouseIsOverTd(this)" '
-						+ 'onmouseout="mouseLeftTd(this)" '
-						+ 'onclick="yearSelectorClicked(this)">' + first_displayed + '</td>';
+			html += '<td class="td-year-selector"><label class="label-year-selector" id="basic" '
+						+ 'onclick="yearSelectorClicked(this)">' + first_displayed + '</label></td>';
 		}
 		number_per_line++;
 		first_displayed++;
@@ -1076,13 +1069,11 @@ function hideAndSetNew(element, index, array){
 	parentDiv = parentDiv.querySelector('.date-time-picker');
 
 	if("date" in format){
-		var date_has_input    = display_date.format(format.date.input).toString();
 		var date              = display_date.format(format.date.display).toString();
 		parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
 													+ 'name="'+date_input+'" value="'+date+'">';
 	}
 	if("time" in format){
-		var time_has_input    = display_time.format(format.time.input).toString();
 		var time              = display_time.format(format.time.display).toString();
 		parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
 													+ 'name="'+time_input+'" value="'+time+'">';
@@ -1104,15 +1095,11 @@ function hideAndSetNew(element, index, array){
  * @param element the clicked hour (td)
  */
 function hourSelectorClicked(element){
-	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-hour-selector');
+	var table         = element.parentNode.parentNode.parentNode.parentNode;
+	var td_selectable = table.querySelectorAll('.label-hour-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
@@ -1179,18 +1166,18 @@ function initialiseDatePopup(element, display_date){
 	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date      = element.querySelector('.date-in-popup');
 
-	var to_add_html   = '<table class="selector-display" style="width:100%; text-align:center"><tr>'
+	var to_add_html   = '<table class="selector-display"><tr id="tr-display-date">'
 	for(i = 0; i < order.length; i++){
 		if(order[i] === 'Y'){
-			to_add_html += '<td class="year-popup" onclick="clickOnLabel(this)"> '+year+'</td>';
+			to_add_html += '<td id="td-display-year"><label class="year-popup" id="display-basic" onclick="clickOnLabel(this)"> '+year+'</label></td>';
 		}
 		if(order[i] === 'M'){
-			to_add_html += '<td class="change-month" style="display:none" id="prev" onclick="changeMonth(this)">\<</td>';
-			to_add_html += '<td class="month-popup" onclick="clickOnLabel(this)"> '+month_name+'</td>';
-			to_add_html += '<td class="change-month" style="display:none" id="next" onclick="changeMonth(this)">\></td>';
+			to_add_html += '<td id="td-display-month-switch"><label class="change-month" style="display:none" id="prev" onclick="changeMonth(this)">\<</label></td>';
+			to_add_html += '<td id="td-display-month"><label class="month-popup" id="display-basic" onclick="clickOnLabel(this)"> '+month_name+'</label></td>';
+			to_add_html += '<td id="td-display-month-switch"><label class="change-month" style="display:none" id="next" onclick="changeMonth(this)">\></label></td>';
 		}
 		if(order[i] === 'D'){
-			to_add_html += '<td class="day-popup" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</td>';
+			to_add_html += '<td id="td-display-day"><label class="day-popup" id="display-basic" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</label></td>';
 		}
 	}
 
@@ -1240,25 +1227,25 @@ function initialiseTimePopup(element){
 
 	element.innerHTML   += '<div class="time-in-popup"></div>';
 	var div_time        = element.querySelector('.time-in-popup');
-	var to_add_html     = '<table style="width:100%; text-align:center" class="selector-display"><tr>';
+	var to_add_html     = '<table class="selector-display"><tr id="tr-display-time">';
 
 	if(contains(format.time.edit.split(''), 'H')){
 		hour        = time.format('HH');
-		to_add_html += '<td class="hour-popup" onclick="clickOnLabel(this)">' + hour + '</td>';
+		to_add_html += '<td id="td-display-hour"><label class="hour-popup" id="display-basic" onclick="clickOnLabel(this)">' + hour + '</label></td>';
 		if(contains(format.time.edit.split(''), 'm') || contains(format.time.edit.split(''), 's')){
-			to_add_html += '<td> : </td>';
+			to_add_html += '<td id="td-display-separator"> : </td>';
 		}
 	}
 	if(contains(format.time.edit.split(''), 'm')){
 		minute      = time.format('mm');
-		to_add_html += '<td class="minute-popup" onclick="clickOnLabel(this)">' + minute + '</td>';
+		to_add_html += '<td id="td-display-minute"><label class="minute-popup" id="display-basic" onclick="clickOnLabel(this)">' + minute + '</label></td>';
 		if(contains(format.time.edit.split(''), 's')){
-			to_add_html += '<td> : </td>';
+			to_add_html += '<td id="td-display-separator"> : </td>';
 		}
 	}
 	if(contains(format.time.edit.split(''), 's')){
 		second      = time.format('ss');
-		to_add_html += '<td class="second-popup" onclick="clickOnLabel(this)">' + second + '</td>';
+		to_add_html += '<td id="td-display-second"><label class="second-popup" id="display-basic" onclick="clickOnLabel(this)">' + second + '</label></td>';
 	}
 
 	to_add_html         += '</tr></table><br />';
@@ -1306,14 +1293,10 @@ function isDate(element){
  */
 function minuteSelectorClicked(element){
 	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-minute-selector');
+	var td_selectable = table.querySelectorAll('.label-minute-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  ='10000px';
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
@@ -1336,14 +1319,10 @@ function minuteSelectorClicked(element){
  */
 function monthSelectorClicked(element){
 	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-month-selector');
+	var td_selectable = table.querySelectorAll('.label-month-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
 	element.id                  = 'clicked';
 
 	var popup                   = getPopupParent(table);
@@ -1360,65 +1339,15 @@ function monthSelectorClicked(element){
 }
 
 /**
- * When mouse is over the td
- * @param element the td
- */
-function mouseIsOverTd(element){
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
-}
-
-/**
- * When mouse leave td
- * @param element the td
- */
-function mouseLeftTd(element){
-	if(element.getAttribute('id') === 'clicked'){
-		element.style.background    = 'bisque';
-		element.style.borderRadius  = '10000px';
-	}
-	else{
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-	}
-}
-
-/**
- * Change decenie on year-selector view (add or sub 10 years)
- * @param element the clicked button "prev 10" or "next 10"
- */
-function changeDecenie(element){
-	var decenie;
-	if(element.className === 'th-prev-ten'){
-		decenie = -10;
-	}
-	else{
-		decenie = 10;
-	}
-
-	var table   = element.parentNode.parentNode;
-	var all_td  = table.querySelectorAll('td');
-	all_td.forEach(function (element) {
-		var year          = parseInt(element.innerHTML);
-		year              += decenie;
-		element.innerHTML = year;
-	});
-}
-
-/**
  * When a second (a td) is clicked in the second selector
  * @param element the clicked second (td)
  */
 function secondSelectorClicked(element){
-	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-second-selector');
+	var table         = element.parentNode.parentNode.parentNode.parentNode;
+	var td_selectable = table.querySelectorAll('.label-second-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
@@ -1518,8 +1447,6 @@ function updateDate(element, value, displayed_date){
 	var displayed_date  = moment.unix(displayed_date);
 	var date_input      = element.querySelector('.date');
 	var date            = moment(getInputFormat(date_input), format.date.edit);
-	console.log(displayed_date);
-	console.log(date_input)
 	date.date(value);
 	date.month(displayed_date.month());
 	date.year(displayed_date.year());
@@ -1588,7 +1515,6 @@ function updateLabels(element){
 		var date  = moment(value, format.date.display);
 		var month = div_labels.querySelector('.month-popup');
 		var year  = div_labels.querySelector('.year-popup');
-		console.log(date);
 
 		if(month){
 			month.innerHTML = ' ' + date.format('MMMM');
@@ -1668,15 +1594,11 @@ function updateYear(element, value){
  * @param element the clicked year (td)
  */
 function yearSelectorClicked(element){
-	var table         = element.parentNode.parentNode.parentNode;
-	var td_selectable = table.querySelectorAll('.td-year-selector');
+	var table         = element.parentNode.parentNode.parentNode.parentNode;
+	var td_selectable = table.querySelectorAll('.label-year-selector');
 	td_selectable.forEach(function(element){
-		element.style.background    = '';
-		element.style.borderRadius  = '';
-		element.id                  = '';
+		element.id                  = 'basic';
 	});
-	element.style.background    = 'lightgreen';
-	element.style.borderRadius  = '10000px';
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
