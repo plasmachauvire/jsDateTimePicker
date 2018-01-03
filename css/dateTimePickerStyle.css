@@ -26,9 +26,10 @@
  * display-selected and display-basic are for labels containing current date / time
  * clicked and basic are for other labels in td (usually clickable)
  */
-#basic:hover, #clicked:hover, #display-basic:hover, #display-selected:hover{
+#basic:hover, #clicked:hover, #display-basic:hover, #display-selected:hover, .change-month:hover{
 	background:lightgreen;
 	border-radius: 10000px;
+	padding:3px;
 }
 
 /*
@@ -37,14 +38,14 @@
  */
 .label-date-selector, .label-hour-selector, .label-minute-selector, .label-month-selector,
 .label-second-selector, .label-year-selector{
-
+	padding:3px;
 }
 
 /*
  * both th are button in year selection to change decenie, also have id="basic"
  */
 .label-next-ten, .label-prev-ten{
-
+	padding:3px;
 }
 
 /*
@@ -57,9 +58,13 @@
 /*
  * td of table where respectively "year, month, [...], second, '<', '>' and ':' " are displayed
  */
-#td-display-day, #td-display-hour, #td-display-minute, #td-display-month, #td-display-month-switch,
-#td-display-second, #td-display-separator, #td-display-year{
+#td-display-day, #td-display-hour, #td-display-minute, #td-display-month,
+#td-display-second, #td-display-year{
+	width:30%;
+}
 
+#td-display-month-switch, #td-display-separator{
+	width:5%;
 }
 
 
@@ -83,9 +88,16 @@
  * also has id="clicked" or id="basic" depending of which of both is choosen
  */
 .td-hour-am-picker, .td-hour-pm-picker{
-
+	padding:3px;
 }
 
+#tr-hour-am-pm-picker{
+	height:40px;
+}
+
+#basic{
+
+}
 
 /*
  * when a td / label is clicked / choosen
@@ -93,6 +105,7 @@
 #clicked{
 	background:bisque;
 	border-radius:10000px;
+	padding:3px;
 }
 
 /*
@@ -109,6 +122,10 @@
 	color:#D3D1D4;
 }
 
+#display-basic{
+	padding:3px;
+}
+
 /*
  * Label containing (month || year || day || hour || minute || second)
  */
@@ -116,6 +133,7 @@
 	border-radius: 10000px;
 	background:FloralWhite;
 	opacity:0.5;
+	padding:3px;
 }
 
 /*
@@ -127,7 +145,7 @@
 	margin-top: 29px;
 	margin-bottom: 20px;
 	position: absolute;
-	width: 400px;
+	width: 430px;
 	top: 0;
 	background-color: rgba(0,93,186,0.9);
 	z-index: 1000;
@@ -143,7 +161,7 @@
 	margin-top: 29px;
 	margin-bottom: 20px;
 	position: absolute;
-	width: 400px;
+	width: 430px;
 	top: 0;
 	background-color: rgba(0,93,186,0.9);
 	z-index: 1000;

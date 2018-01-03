@@ -16,10 +16,10 @@ var original_format = 'DD/MM/YYYY hh:mm';
 // CONFIGURATION
 var live_check_input_date                       = 1;
 var live_check_input_time                       = 1;
-var auto_redirect_to_next_when_select_date      = 1;
-var auto_redirect_to_next_when_select_time      = 1;
-var auto_close_when_more_precise_date_selected  = 1;
-var auto_close_when_more_precise_time_selected  = 1;
+var auto_redirect_to_next_when_select_date      = 0;
+var auto_redirect_to_next_when_select_time      = 0;
+var auto_close_when_more_precise_date_selected  = 0;
+var auto_close_when_more_precise_time_selected  = 0;
 
 /**
  * Used to check if date / time user in being writing are correct
@@ -197,7 +197,6 @@ function changeDecenie(element){
 	}
 
 	var table   = element.parentNode.parentNode.parentNode.parentNode;
-	console.log(table);
 	var all_td  = table.querySelectorAll('.label-year-selector');
 	all_td.forEach(function (element) {
 		var year          = parseInt(element.innerHTML);
@@ -302,11 +301,17 @@ function dateSelectorClicked(element, displayed_date){
 	});
 	element.id                    = 'clicked';
 
-	if(auto_close_when_more_precise_date_selected){
-		var popup                     = getPopupParent(table);
-		popup.style.display           = "none";
-	}
+	var popup                     = getPopupParent(table);
 	updateDate(popup.parentNode, element.innerHTML, displayed_date);
+	if(auto_close_when_more_precise_date_selected){
+		popup.style.display           = "none";
+		popup.blur();
+	}
+	else{
+		displayPopup(popup, null);
+		var day_selector = popup.querySelector('.day-selector');
+		displaySelector(day_selector);
+	}
 }
 
 /**
@@ -347,7 +352,9 @@ function displaySelector(element){
 			label.id = 'display-selected';
 		}
 		else{
-			label.id = 'display-basic';
+			if(label.id !== 'prev' && label.id !== 'next'){
+				label.id = 'display-basic';
+			}
 		}
 	});
 	element.style.display = "";
@@ -689,7 +696,7 @@ function getHtmlForHourSelector(hour){
 		display_pm = '';
 		display_am = 'none';
 
-		html += '<tr>'
+		html += '<tr id="tr-hour-am-pm-picker">'
 					+ '<td><label class="td-hour-am-picker" id="basic" '
 					+ 'onclick="changePartOfDay(this)">Am</label></td>'
 					+ '<td></td>'
@@ -698,7 +705,7 @@ function getHtmlForHourSelector(hour){
 					+ '</tr>';
 	}
 	else{
-		html += '<tr>'
+		html += '<tr id="tr-hour-am-pm-picker">'
 					+ '<td><label class="td-hour-am-picker" id="clicked" '
 					+ 'onclick="changePartOfDay(this)">Am</label></td>'
 					+ '<td></td>'
@@ -1512,8 +1519,11 @@ function updateDate(element, value, displayed_date){
 	date.month(displayed_date.month());
 	date.year(displayed_date.year());
 	date_input.value  = date.format(format.date.edit);
-	eventLostFocusOnDate(date_input, null);
-	element.querySelector('.popup-date-picker').blur();
+
+	date_input.id     = 0 + '$$' + date.format(format.date.edit);
+	updateDateRealInput(date_input);
+	var popup         = element.querySelector('.popup-date-picker');
+	displayPopup(popup, null);
 }
 
 /**
