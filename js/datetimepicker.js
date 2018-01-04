@@ -1181,6 +1181,10 @@ function getInputOfPopup(element){
 	}
 }
 
+/**
+ * Get months names in order of year and in locale name
+ * @returns {Array} months of year
+ */
 function getMonths(){
 	var january     = moment.unix(0).locale(locale_lang).format('MMMM');
 	var february    = moment.unix(2678400).locale(locale_lang).format('MMMM');
@@ -1211,6 +1215,10 @@ function getMonths(){
 	return months;
 }
 
+/**
+ * Get order of display in dateEdit and so permit to know what has to be displayed
+ * @returns {Array}
+ */
 function getOrderDateEdit(){
 	var order = [];
 	var j = 0;
@@ -1678,6 +1686,11 @@ function setInputFormat(element){
 	}
 }
 
+/**
+ * Set display format for a date which is not in an input but is only displayed in the page in a
+ * div with className = .date_time
+ * @param element the div with the date inside
+ */
 function setDisplayFormat(element){
 	var input = element.querySelector('.datetime');
 	if(!input){
