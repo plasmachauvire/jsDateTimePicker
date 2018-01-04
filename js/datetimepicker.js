@@ -1,40 +1,59 @@
 /*
+ * ################
+ * # REQUIREMENTS #
+ * ################
+ *
+ * And input with class = "datetime"
+ * This input must be in a div with class = "date_time"
+ * This div must be in a div with the name you want
+ *
+ * ## EXAMPLE :
+ *
+ * <div class="end_date" id="end_date">
+ *    <div class="date_time class">
+ *		  <input autocomplete="off" class="datetime" name="stop_date" value="23/12/2017 17:50">
+ *		</div>
+ * </div>
+ */
+
+
+/*
  * Define the format of date and time for display and for edition, not the format send by form (still unchanged)
  *
  * possible formats :
  *
- * M            month number
- * MM           month number
- * MMM          3 letters of month name
- * MMMM         full month name
- * d            number of day in week : monday --> 0, tuesday --> 1, ...
- * dd           two letters of day name
- * ddd          3 letters of day name
- * dddd         full day name
- * D            day number in month : 1, 2, .., 30, 31
- * DD           day number in month : 01, 02, .., 30, 31
- * DDD          day number in year : 1, 2, ..., 364, 365
- * DDDD         day number in year : 001, 002, ..., 364, 365
- * Y            full year
- * YY           last 2 numbers of year
- * YYYY         full year
- * [yourText]   will be displayed as text
- * H            hour
- * HH           hour
- * h            hour
- * hh           hour
- * m            minute
- * mm           minute
- * s            second
- * ss           second
  * a            am / pm
  * A            AM / PM
+ * d            day     : number of day in week : monday --> 0, tuesday --> 1, ...
+ * dd           day     : two letters of day name
+ * ddd          day     : 3 letters of day name
+ * dddd         day     : full day name
+ * D            day     : number in month : 1, 2, .., 30, 31
+ * DD           day     : number in month : 01, 02, .., 30, 31
+ * DDD          day     : number in year : 1, 2, ..., 364, 365
+ * DDDD         day     : number in year : 001, 002, ..., 364, 365
+ * H            hour    : 0, 1, 2, ..., 22, 23
+ * HH           hour    : 00, 01, 02, ..., 22, 23
+ * h            hour    : 1, 2, .., 11, 12 (add 'a' to format to tell the difference between am and pm)
+ * hh           hour    : 01, 02, .., 11, 12 (add 'a' to format to tell the difference between am and pm)
+ * M            month   : month number
+ * MM           month   : month number
+ * MMM          month   : 3 letters of month name
+ * MMMM         month   : full month name
+ * m            minute  : 0, 1, 2, .., 58, 59
+ * mm           minute  : 00, 01, 02, ..., 58, 59
  * o            st / nd / rd / th --> Do : 1st / 2nd / 3rd / 4th / ...
- * w            week number in year : 1, 2, .., 51, 52, 53
- * ww           week number in year : 01, 02, .., 51, 52, 53
- * W            week number in year : 1, 2, .., 51, 52, 53
- * WW           week number in year : 01, 02, .., 51, 52, 53
+ * s            second  : 0, 1, 2, .., 58, 59
+ * ss           second  : 00, 01, 02, ..., 58, 59
  * separators   for example separators like '/' , ',', ':', '-', ...
+ * w            week    : 1, 2, .., 51, 52, 53 (number in year)
+ * ww           week    : 01, 02, .., 51, 52, 53 (number in year)
+ * W            week    : 1, 2, .., 51, 52, 53 (number in year)
+ * WW           week    : 01, 02, .., 51, 52, 53 (number in year)
+ * Y            year    : full year
+ * YY           year    : last 2 numbers of year
+ * YYYY         year    : full year
+ * [yourText]   text    : will be displayed as text
  *
  * advice : some format should'nt be used in edit format such as d / dd / ddd / dddd
  * or only with at least D for this example
@@ -104,7 +123,7 @@ var format = {
  * Original format of original input send with form
  * @type {string}
  */
-var original_format = 'DD/MM/YYYY hh:mm';
+var original_format = 'DD/MM/YYYY HH:mm';
 
 /*
  * #################
@@ -140,6 +159,12 @@ var disabled_buttons_can_be_overred_and_clicked = 0;  /*
                                                        * Disabled buttons like in date selector can't by
 																											 * default be selected (no action when click on it)
 																											 * and has'nt specific display when overred
+																											 */
+
+var default_date                                = ''; /*
+																											 * Default date to set when input is empty at
+																											 * loading, can be 'now', '' (no date) or a date
+																											 * in original format
 																											 */
 
 // ## Displaying ##
@@ -694,6 +719,39 @@ function focusOutPopup(element, event){
 	}
 }
 
+function getDateWhenLastIsEmpty(last_input){
+	if("date" in format){
+		var parent = last_input.parentNode.parentNode;
+		var date_input = parent.querySelector('.date');
+		var value_date;
+		if(date_input.value !== ''){
+			value_date = date_input.value;
+		}
+		else{
+			value_date = date_input.id.split('$$')[1];
+		}
+
+		if(date_input.id.split('$$')[0] == 1){
+			var date = moment(value_date, format.date.display, locale_lang, true);
+			date = date.format(original_format).toString();
+			return date;
+		}
+		else{
+			var date = moment(value_date, format.date.edit, locale_lang, true);
+			date = date.format(original_format).toString();
+			return date;
+		}
+	}
+	else{
+		var date = moment().locale(locale_lang);
+		date.hour(0);
+		date.minute(0);
+		date.second(0);
+		date = date.format(original_format).toString();
+		return date;
+	}
+}
+
 /**
  * Get the full regex to check if the input fully matches the format
  * @param format for which format the regex must be created
@@ -1151,6 +1209,12 @@ function getInputFormat(element){
 			}
 			return new_value;
 		}
+		if(element.value === ''){
+			var value = getDateWhenLastIsEmpty(getParentInput(element));
+			var date = moment(value, original_format, locale_lang, false);
+			date = date.format(format.date.edit).toString();
+			return date;
+		}
 		return element.value;
 	}
 	else{
@@ -1163,6 +1227,12 @@ function getInputFormat(element){
 				new_value = new_value.format(format.time.edit).toString();
 			}
 			return new_value;
+		}
+		if(element.value === ''){
+			var value = getDateWhenLastIsEmpty(getParentInput(element));
+			var date = moment(value, original_format, locale_lang, false);
+			date = date.format(format.time.edit).toString();
+			return date;
 		}
 		return element.value;
 	}
@@ -1277,6 +1347,12 @@ function getOutputFormat(element){
 			}
 			return new_value;
 		}
+		if(element.value === ''){
+			var value = getDateWhenLastIsEmpty(getParentInput(element));
+			var date = moment(value, original_format, locale_lang, false);
+			date = date.format(format.date.display).toString();
+			return date;
+		}
 		return element.value;
 	}
 	else{
@@ -1289,6 +1365,12 @@ function getOutputFormat(element){
 				new_value = new_value.format(format.time.display).toString();
 			}
 			return new_value;
+		}
+		if(element.value === ''){
+			var value = getDateWhenLastIsEmpty(getParentInput(element));
+			var date = moment(value, original_format, locale_lang, false);
+			date = date.format(format.time.display).toString();
+			return date;
 		}
 		return element.value;
 	}
@@ -1338,11 +1420,18 @@ function hideAndSetNew(element, index, array){
 		var date_input        = name_last_input + '_date';
 		var time_input        = name_last_input + '_time';
 		var last_input_value  = last_input.getAttribute('value');
+		var isEmpty           = false;
 
 
 		if(last_input_value === ''){
-			last_input_value = moment().locale(locale_lang);
-			last_input_value.format(original_format);
+			isEmpty = true;
+			if(default_date === 'now' || default_date === ''){
+				last_input_value = moment().locale(locale_lang);
+				last_input_value.format(original_format);
+			}
+			else{
+				last_input_value = default_date;
+			}
 		}
 
 		var display_date      = moment(last_input_value, original_format, locale_lang, false);
@@ -1352,13 +1441,25 @@ function hideAndSetNew(element, index, array){
 
 		if("date" in format){
 			var date              = display_date.format(format.date.display).toString();
-			parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
-														+ 'name="'+date_input+'" value="'+date+'">';
+			if(isEmpty && default_date === ''){
+				parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
+															+ 'name="'+date_input+'" value="">';
+			}
+			else{
+				parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
+															+ 'name="'+date_input+'" value="'+date+'">';
+			}
 		}
 		if("time" in format){
 			var time              = display_date.format(format.time.display).toString();
-			parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
-														+ 'name="'+time_input+'" value="'+time+'">';
+			if(isEmpty && default_date === ''){
+				parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
+															+ 'name="'+time_input+'" value="">';
+			}
+			else{
+				parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
+															+ 'name="'+time_input+'" value="'+time+'">';
+			}
 		}
 
 		if("date" in format){
@@ -1681,7 +1782,9 @@ function setInputFormat(element){
 					new_value = new_value.format(format.time.edit).toString();
 				}
 		}
-		element.value = new_value;
+		if(value_element !== ''){
+			element.value = new_value;
+		}
 		element.id    = 0 + '$$' + new_value;
 	}
 }
@@ -1761,7 +1864,12 @@ function setOutputFormat(element){
 				new_value = new_value.format(format.time.display).toString();
 			}
 		}
-		element.value = new_value;
+		if(value_element === '' && default_date === ''){
+
+		}
+		else{
+			element.value = new_value;
+		}
 		element.id    = 1 + '$$' + new_value;
 	}
 
@@ -1792,35 +1900,41 @@ function updateDate(element, value, displayed_date){
  * @param element the input
  */
 function updateDateRealInput(element){
-	var last_input    = getParentInput(element);
-	var last_value    = last_input.getAttribute('value');
-	var last_has_date;
+	if(element.value === '' && default_date === ''){
 
-	if(last_value === ''){
-		last_has_date = moment().locale(locale_lang);
-		last_value = last_has_date.format(original_format).toString();
-	}
-	last_has_date = moment(last_value, original_format, locale_lang, false);
-	if(isDate(element)){
-		var new_value    = getInputFormat(element);
-		var new_date        = moment(new_value, format.date.edit, locale_lang, true);
-
-		last_has_date.year(new_date.year());
-		last_has_date.month(new_date.month());
-		last_has_date.date(new_date.date());
-
-		last_input.setAttribute('value', last_has_date.format(original_format));
 	}
 	else{
-		var new_time  = getInputFormat(element);
-		new_time      = moment(new_time, format.time.edit, locale_lang, true);
+		var last_input    = getParentInput(element);
+		var last_value    = last_input.getAttribute('value');
+		var last_has_date;
 
-		last_has_date.hour(new_time.hour());
-		last_has_date.minute(new_time.minute());
-		last_has_date.second(new_time.second());
-		last_has_date.millisecond(new_time.millisecond());
+		if(last_value === ''){
+			last_value = getDateWhenLastIsEmpty(last_input);
+		}
+		last_has_date = moment(last_value, original_format, locale_lang, false);
+		if(isDate(element)){
+			var new_value       = getInputFormat(element);
+			var new_date        = moment(new_value, format.date.edit, locale_lang, true);
 
-		last_input.setAttribute('value', last_has_date.format(original_format));
+			last_has_date.year(new_date.year());
+			last_has_date.month(new_date.month());
+			last_has_date.date(new_date.date());
+
+			last_input.setAttribute('value', last_has_date.format(original_format));
+		}
+		else{
+			var new_time  = getInputFormat(element);
+			new_time      = moment(new_time, format.time.edit, locale_lang, true);
+
+			last_has_date.format('X');
+
+			last_has_date.hour(new_time.format('HH'));
+			last_has_date.minute(new_time.minute());
+			last_has_date.second(new_time.second());
+			last_has_date.millisecond(new_time.millisecond());
+
+			last_input.setAttribute('value', last_has_date.format(original_format));
+		}
 	}
 }
 
