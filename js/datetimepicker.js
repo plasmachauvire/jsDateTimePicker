@@ -1,4 +1,4 @@
-/**
+/*
  * Define the format of date and time for display and for edition, not the format send by form (still unchanged)
  *
  * possible formats :
@@ -7,9 +7,14 @@
  * MM           month number
  * MMM          3 letters of month name
  * MMMM         full month name
+ * d            number of day in week : monday --> 0, tuesday --> 1, ...
+ * dd           two letters of day name
+ * ddd          3 letters of day name
  * dddd         full day name
- * D            day number
- * DD           day number
+ * D            day number in month : 1, 2, .., 30, 31
+ * DD           day number in month : 01, 02, .., 30, 31
+ * DDD          day number in year : 1, 2, ..., 364, 365
+ * DDDD         day number in year : 001, 002, ..., 364, 365
  * Y            full year
  * YY           last 2 numbers of year
  * YYYY         full year
@@ -23,9 +28,37 @@
  * s            second
  * ss           second
  * a            am / pm
+ * A            AM / PM
  * o            st / nd / rd / th --> Do : 1st / 2nd / 3rd / 4th / ...
+ * w            week number in year : 1, 2, .., 51, 52, 53
+ * ww           week number in year : 01, 02, .., 51, 52, 53
+ * W            week number in year : 1, 2, .., 51, 52, 53
+ * WW           week number in year : 01, 02, .., 51, 52, 53
  * separators   for example separators like '/' , ',', ':', '-', ...
+ *
+ * advice : some format should'nt be used in edit format such as d / dd / ddd / dddd
+ * or only with at least D for this example
  */
+var format = {
+	date : {
+		edit    : 'DD-MM-YYYY',
+		display :'Do MMM YYYY'
+	},
+	time : {
+		edit    : 'HH:mm:ss a',
+		display : 'HH:mm a'
+	}
+};
+
+var locale_lang = window.navigator.language;
+
+/*
+
+#######################
+# EXAMPLES OF FORMATS #
+#######################
+
+## basic
 var format = {
 	date : {
 		edit    : 'DD-M-YYYY',
@@ -36,6 +69,36 @@ var format = {
 		display : 'HH:mm a'
 	}
 };
+
+## weeks of year
+var format = {
+	date : {
+		edit    : 'w [of] Y',
+		display : '[week] w [of] Y'
+	}
+};
+
+## only and hour + minute
+var format = {
+	time : {
+		edit    : 'HH:mm',
+		display : 'HH:mm a'
+	}
+};
+
+## day number in year + time only hour
+var format = {
+	date : {
+		edit    : 'DDD-YYYY',
+		display :'DDDo [day of] Y'
+	},
+	time : {
+		edit    : 'HH',
+		display : 'HH a'
+	}
+};
+
+*/
 
 /**
  * Original format of original input send with form
@@ -80,7 +143,7 @@ var disabled_buttons_can_be_overred_and_clicked = 0;  /*
 																											 */
 
 // ## Displaying ##
-var number_of_letters_for_days_name_in_selector = 3; // may have to adapt width of popup
+var number_of_letters_for_days_name_in_selector = 3; // ! may have to adapt width of popup !
 
 
 
@@ -93,6 +156,8 @@ var regex = {
 		2 : '([0-1][0-9])'
 	},
 	M     : '(([1-9])|(1[0-2]))',
+	DDD   : '([0-9]{1,3})',
+	DDDD   : '([0-9]{1,3})',
 	DD    : {
 		1 : '([0-3])',
 		2 : '([0-3][0-9])'
@@ -115,8 +180,12 @@ var regex = {
 		2 : '([a-Z]{2})'
 	},
 	a     :	{
-		1 : '([a-Z])',
-		2 : '([a-Z]{2})'
+		1 : '([a-z])',
+		2 : '([a-z]{2})'
+	},
+	A     :	{
+		1 : '([A-Z])',
+		2 : '([A-Z]{2})'
 	},
 	H     : {
 		1 : '[0-2]',
@@ -146,11 +215,29 @@ var regex = {
 	ss    : {
 		1 : '([0-5])',
 		2 : '([0-5][0-9])'
+	},
+	w     :{
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
+	},
+	W     :{
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
+	},
+	ww     :{
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
+	},
+	WW     :{
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
 	}
 };
 
 var dates         = document.querySelectorAll('.date_time');
 dates.forEach(hideAndSetNew);
+dates.forEach(setDisplayFormat);
+
 var dates_inputs  = document.querySelectorAll('.date');
 var times_inputs  = document.querySelectorAll('.time');
 dates_inputs.forEach(setListenersDate);
@@ -292,7 +379,7 @@ function changeDecenie(element){
 function changeMonth(element){
 	var popup           = getPopupParent(element);
 	var input           = getInputOfPopup(popup)
-	var current_date    = moment(getInputFormat(input), format.date.edit);
+	var current_date    = moment(getInputFormat(input), format.date.edit, locale_lang, true);
 	var year            = (popup.querySelector('.year-popup').innerHTML).trim();
 	var month           = (popup.querySelector('.month-popup').innerHTML).trim();
 
@@ -390,7 +477,7 @@ function dateSelectorClicked(element, displayed_date){
 	var popup                     = getPopupParent(table);
 
 	if(element.className === 'disabled-label'){
-		displayed_date  = moment.unix(displayed_date);
+		displayed_date  = moment.unix(displayed_date).locale(locale_lang);
 		if(parseInt(element.innerHTML) > 15){
 			displayed_date.add(-1, 'months');
 		}
@@ -661,13 +748,13 @@ function getFullRegexForFormat(format){
  */
 function getHtmlForDateSelector(date, display_selection){
 
-	var monday    = moment.unix(345600).format('dddd');
-	var tuesday   = moment.unix(432000).format('dddd');
-	var wednesday = moment.unix(518400).format('dddd');
-	var thursday  = moment.unix(0).format('dddd');
-	var friday    = moment.unix(86400).format('dddd');
-	var saturday  = moment.unix(172800).format('dddd');
-	var sunday    = moment.unix(259200).format('dddd');
+	var monday    = moment.unix(345600).locale(locale_lang).format('dddd');
+	var tuesday   = moment.unix(432000).locale(locale_lang).format('dddd');
+	var wednesday = moment.unix(518400).locale(locale_lang).format('dddd');
+	var thursday  = moment.unix(0).locale(locale_lang).format('dddd');
+	var friday    = moment.unix(86400).locale(locale_lang).format('dddd');
+	var saturday  = moment.unix(172800).locale(locale_lang).format('dddd');
+	var sunday    = moment.unix(259200).locale(locale_lang).format('dddd');
 
 	var days      = [];
 	days[0]       = monday;
@@ -678,14 +765,14 @@ function getHtmlForDateSelector(date, display_selection){
 	days[5]       = saturday;
 	days[6]       = sunday;
 
-	var display_date = moment(date);
+	var display_date = moment(date).locale(locale_lang);
 	display_date = display_date.format('X');
 
-	var first_day_of_month  = moment(date);
+	var first_day_of_month  = moment(date).locale(locale_lang);
 	first_day_of_month.startOf('month');
 	var name_first_day      = first_day_of_month.format('dddd');
 
-	var last_day            = moment(date);
+	var last_day            = moment(date).locale(locale_lang);
 	last_day.endOf('month');
 	var number_of_days      = last_day.format('D');
 	var last_day_name       = last_day.format('dddd');
@@ -718,7 +805,7 @@ function getHtmlForDateSelector(date, display_selection){
 		lines[0][index_start_month][0] = 1;
 		lines[0][index_start_month][1] = 0;
 		if(index_start_month !== 0){
-			var prev_day = moment(first_day_of_month);
+			var prev_day = moment(first_day_of_month).locale(locale_lang);
 			prev_day.subtract(1, 'days');
 			var number_of_prev_day = prev_day.format('D');
 			var j = 0;
@@ -1055,12 +1142,12 @@ function getHtmlForYearSelector(date, year){
 function getInputFormat(element){
 	if(isDate(element)){
 		if(element.id.split('$$')[0] == 1){
-			var to_display  = moment(element.value, format.date.display);
-			var new_value   = to_display.format(format.date.edit);
+			var to_display  = moment(element.value, format.date.display, locale_lang, true);
+			var new_value   = to_display.format(format.date.edit).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.date.display);
-				new_value = new_value.format(format.date.edit);
+				new_value = moment(new_value, format.date.display, locale_lang, true);
+				new_value = new_value.format(format.date.edit).toString();
 			}
 			return new_value;
 		}
@@ -1068,12 +1155,12 @@ function getInputFormat(element){
 	}
 	else{
 		if(element.id.split('$$')[0] == 1){
-			var to_display  = moment(element.value, format.time.display);
-			var new_value   = to_display.format(format.time.edit);
+			var to_display  = moment(element.value, format.time.display, locale_lang, true);
+			var new_value   = to_display.format(format.time.edit).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.time.display);
-				new_value = new_value.format(format.time.edit);
+				new_value = moment(new_value, format.time.display, locale_lang, true);
+				new_value = new_value.format(format.time.edit).toString();
 			}
 			return new_value;
 		}
@@ -1095,18 +1182,18 @@ function getInputOfPopup(element){
 }
 
 function getMonths(){
-	var january     = moment.unix(0).format('MMMM');
-	var february    = moment.unix(2678400).format('MMMM');
-	var march       = moment.unix(5097600).format('MMMM');
-	var april       = moment.unix(7776000).format('MMMM');
-	var may         = moment.unix(10368000).format('MMMM');
-	var june        = moment.unix(13046400).format('MMMM');
-	var july        = moment.unix(15638400).format('MMMM');
-	var august      = moment.unix(18316800).format('MMMM');
-	var september   = moment.unix(20995200).format('MMMM');
-	var october     = moment.unix(23587200).format('MMMM');
-	var november    = moment.unix(26265600).format('MMMM');
-	var december    = moment.unix(28857600).format('MMMM');
+	var january     = moment.unix(0).locale(locale_lang).format('MMMM');
+	var february    = moment.unix(2678400).locale(locale_lang).format('MMMM');
+	var march       = moment.unix(5097600).locale(locale_lang).format('MMMM');
+	var april       = moment.unix(7776000).locale(locale_lang).format('MMMM');
+	var may         = moment.unix(10368000).locale(locale_lang).format('MMMM');
+	var june        = moment.unix(13046400).locale(locale_lang).format('MMMM');
+	var july        = moment.unix(15638400).locale(locale_lang).format('MMMM');
+	var august      = moment.unix(18316800).locale(locale_lang).format('MMMM');
+	var september   = moment.unix(20995200).locale(locale_lang).format('MMMM');
+	var october     = moment.unix(23587200).locale(locale_lang).format('MMMM');
+	var november    = moment.unix(26265600).locale(locale_lang).format('MMMM');
+	var december    = moment.unix(28857600).locale(locale_lang).format('MMMM');
 
 	var months      = [];
 	months[0]       = january;
@@ -1124,6 +1211,47 @@ function getMonths(){
 	return months;
 }
 
+function getOrderDateEdit(){
+	var order = [];
+	var j = 0;
+	var split_format  = format.date.edit.split('');
+	for(var i = 0; i < split_format.length; i++){
+		if(split_format[i] === 'M' && !contains(order, 'M')){
+			order[j] = 'M';
+			j++;
+		}
+		else if(split_format[i] === 'D' && !contains(order, 'D')){
+			order[j] = 'D';
+			j++;
+		}
+		else if(split_format[i] === 'Y' && !contains(order, 'Y')){
+			order[j] = 'Y';
+			j++;
+		}
+		else if(split_format[i] === 'W' || split_format[i] === 'w'){
+			if(!contains(order, 'D')){
+				order[j] = 'D';
+				j++;
+			}
+			if(!contains(order, 'M')){
+				order[j] = 'M';
+				j++
+			}
+		}
+		else if(format.date.edit.indexOf('DDD') !== -1){
+			if(!contains(order, 'D')){
+				order[j] = 'D';
+				j++;
+			}
+			if(!contains(order, 'M')){
+				order[j] = 'M';
+				j++
+			}
+		}
+	}
+	return order;
+}
+
 /**
  * Get output format of an input without changing the current displayed format
  * @param element the input
@@ -1132,11 +1260,11 @@ function getMonths(){
 function getOutputFormat(element){
 	if(isDate(element)){
 		if(element.id.split('$$')[0] == 0){
-			var to_display  = moment(element.value, format.date.edit);
+			var to_display  = moment(element.value, format.date.edit, locale_lang, true);
 			var new_value   = to_display.format(format.date.display).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.date.edit);
+				new_value = moment(new_value, format.date.edit, locale_lang, true);
 				new_value = new_value.format(format.date.display).toString();
 			}
 			return new_value;
@@ -1145,11 +1273,11 @@ function getOutputFormat(element){
 	}
 	else{
 		if(element.id.split('$$')[0] == 0){
-			var to_display  = moment(element.value, format.time.edit);
+			var to_display  = moment(element.value, format.time.edit, locale_lang, true);
 			var new_value   = to_display.format(format.time.display).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.time.edit);
+				new_value = moment(new_value, format.time.edit, locale_lang, true);
 				new_value = new_value.format(format.time.display).toString();
 			}
 			return new_value;
@@ -1194,41 +1322,45 @@ function getPopupParent(element){
  * Hide precedent dateTime input and set the new one(s)
  */
 function hideAndSetNew(element, index, array){
-	element.style.display = 'none';
-	var parentDiv         = element.parentNode;
 	var last_input        = element.querySelector('.datetime');
-	var name_last_input   = last_input.getAttribute('name');
-	var date_input        = name_last_input + '_date';
-	var time_input        = name_last_input + '_time';
-	var last_input_value  = last_input.getAttribute('value');
-	var last_input_date   = last_input_value.split(' ')[0];
-	var last_input_time   = last_input_value.split(' ')[1];
-
-	var display_date      = moment(last_input_date, 'DD/MM/YYYY');
-	var display_time      = moment(last_input_time, 'hh:mm');
+	if(last_input){
+		element.style.display = 'none';
+		var parentDiv         = element.parentNode;
+		var name_last_input   = last_input.getAttribute('name');
+		var date_input        = name_last_input + '_date';
+		var time_input        = name_last_input + '_time';
+		var last_input_value  = last_input.getAttribute('value');
 
 
-	parentDiv.innerHTML   +=  '<div class="date-time-picker"></div>';
-	parentDiv = parentDiv.querySelector('.date-time-picker');
+		if(last_input_value === ''){
+			last_input_value = moment().locale(locale_lang);
+			last_input_value.format(original_format);
+		}
 
-	if("date" in format){
-		var date              = display_date.format(format.date.display).toString();
-		parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
-													+ 'name="'+date_input+'" value="'+date+'">';
-	}
-	if("time" in format){
-		var time              = display_time.format(format.time.display).toString();
-		parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
-													+ 'name="'+time_input+'" value="'+time+'">';
-	}
+		var display_date      = moment(last_input_value, original_format, locale_lang, false);
 
-	if("date" in format){
-		parentDiv.innerHTML   += '<div class="popup-date-picker" tabindex="-1" style="display:none">'
-													+  '</div>';
-	}
-	if("time" in format){
-		parentDiv.innerHTML   += '<div class="popup-time-picker" tabindex="-1" style="display:none">'
-													+  '</div>';
+		parentDiv.innerHTML   +=  '<div class="date-time-picker"></div>';
+		parentDiv = parentDiv.querySelector('.date-time-picker');
+
+		if("date" in format){
+			var date              = display_date.format(format.date.display).toString();
+			parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
+														+ 'name="'+date_input+'" value="'+date+'">';
+		}
+		if("time" in format){
+			var time              = display_date.format(format.time.display).toString();
+			parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
+														+ 'name="'+time_input+'" value="'+time+'">';
+		}
+
+		if("date" in format){
+			parentDiv.innerHTML   += '<div class="popup-date-picker" tabindex="-1" style="display:none">'
+														+  '</div>';
+		}
+		if("time" in format){
+			parentDiv.innerHTML   += '<div class="popup-time-picker" tabindex="-1" style="display:none">'
+														+  '</div>';
+		}
 	}
 
 }
@@ -1279,7 +1411,7 @@ function hourSelectorClicked(element){
  */
 function initialiseDatePopup(element, display_date){
 	var output_date       = getOutputFormat(element.parentNode.querySelector('.date'));
-	var date              = moment(output_date, format.date.display);
+	var date              = moment(output_date, format.date.display, locale_lang, true);
 	var display_selection = false;
 
 	if(date.isSame(display_date)){
@@ -1290,48 +1422,30 @@ function initialiseDatePopup(element, display_date){
 		display_date      = date;
 		display_selection = true;
 	}
-	var j             = 0;
-	var order         = [];
-
-	var split_format  = format.date.edit.split('');
-	for(var i = 0; i < split_format.length; i++){
-		if(split_format[i] === 'M' && !contains(order, 'M')){
-			order[j] = 'M';
-			j++;
-		}
-		else if(split_format[i] === 'D' && !contains(order, 'D')){
-			order[j] = 'D';
-			j++;
-		}
-		else if(split_format[i] === 'Y' && !contains(order, 'Y')){
-			order[j] = 'Y';
-			j++;
-		}
-	}
-
-	var day_number    = display_date.format('D');
-	if(contains(format.date.display.split(''), 'o')){
-		day_number      = display_date.format('Do');
-	}
-
-	var day_name      = display_date.format('dddd');
-	var month_name    = display_date.format('MMMM');
-	var year          = display_date.format('Y');
+	var order         = getOrderDateEdit();
 
 	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date      = element.querySelector('.date-in-popup');
 
-	var to_add_html   = '<table class="selector-display"><tr id="tr-display-date">'
-	for(i = 0; i < order.length; i++){
+	var to_add_html   = '<table class="selector-display"><tr id="tr-display-date">';
+	for(var i = 0; i < order.length; i++){
 		if(order[i] === 'Y'){
+			var year    = display_date.format('Y');
 			to_add_html += '<td id="td-display-year"><label class="year-popup" id="display-basic" onclick="clickOnLabel(this)"> '+year+'</label></td>';
 		}
 		if(order[i] === 'M'){
+			var month_name    = display_date.format('MMMM');
 			to_add_html += '<td id="td-display-month-switch"><label class="change-month" style="display:none" id="prev" onclick="changeMonth(this)">\<</label></td>';
 			to_add_html += '<td id="td-display-month"><label class="month-popup" id="display-basic" onclick="clickOnLabel(this)"> '+month_name+'</label></td>';
 			to_add_html += '<td id="td-display-month-switch"><label class="change-month" style="display:none" id="next" onclick="changeMonth(this)">\></label></td>';
 		}
 		if(order[i] === 'D'){
+			var day_number    = display_date.format('D');
+			if(format.date.display.indexOf('Do') !== -1){
+				day_number      = display_date.format('Do');
+			}
+			var day_name      = display_date.format('dddd');
+
 			to_add_html += '<td id="td-display-day"><label class="day-popup" id="display-basic" onclick="clickOnLabel(this)"> '+day_name+' '+day_number+'</label></td>';
 		}
 	}
@@ -1375,7 +1489,7 @@ function initialiseDatePopup(element, display_date){
  */
 function initialiseTimePopup(element){
 	var input_time      = getInputFormat(element.parentNode.querySelector('.time'));
-	var time            = moment(input_time, format.time.edit);
+	var time            = moment(input_time, format.time.edit, locale_lang, true);
 	var hour            = null;
 	var minute          = null;
 	var second          = null;
@@ -1490,7 +1604,7 @@ function monthSelectorClicked(element){
 
 	var popup                   = getPopupParent(table);
 	updateMonth(popup.parentNode, element.innerHTML);
-	if(!contains(format.date.edit.split(''), 'D')){
+	if(!contains(getOrderDateEdit(), 'D')){
 		if(auto_close_when_more_precise_date_selected){
 			popup.style.display = "none";
 			popup.blur();
@@ -1542,25 +1656,50 @@ function setInputFormat(element){
 	if(element.id.split('$$')[0] == 1){
 		var value_element = element.value;
 		if(isDate(element)){
-				var to_edit   = moment(value_element, format.date.display);
+				var to_edit   = moment(value_element, format.date.display, locale_lang, true);
 				var new_value = to_edit.format(format.date.edit).toString();
 				if(!to_edit.isValid(new_value)){
 					new_value = element.id.split('$$')[1];
-					new_value = moment(new_value, format.date.display);
+					new_value = moment(new_value, format.date.display, locale_lang, true);
 					new_value = new_value.format(format.date.edit).toString();
 				}
 		}
 		else{
-				var to_edit   = moment(value_element, format.time.display);
+				var to_edit   = moment(value_element, format.time.display, locale_lang, true);
 				var new_value = to_edit.format(format.time.edit).toString();
 				if(!to_edit.isValid(new_value)){
 					new_value = element.id.split('$$')[1];
-					new_value = moment(new_value, format.time.display);
+					new_value = moment(new_value, format.time.display, locale_lang, true);
 					new_value = new_value.format(format.time.edit).toString();
 				}
 		}
 		element.value = new_value;
 		element.id    = 0 + '$$' + new_value;
+	}
+}
+
+function setDisplayFormat(element){
+	var input = element.querySelector('.datetime');
+	if(!input){
+		var parent = element.parentNode;
+		var value = element.innerHTML;
+		value = moment(value, original_format, locale_lang, false);
+		var to_display = '';
+		if("date" in format){
+			to_display += value.format(format.date.display).toString();
+		}
+		if("time" in format){
+			if("date" in format){
+				to_display += ' ';
+			}
+			to_display += value.format(format.time.display).toString();
+		}
+
+		if(("time" in format) || ("date" in format)){
+			parent.innerHTML += '<div class="'+element.className+'_display">' + to_display + '</div>';
+			element.style.display = "none";
+		}
+
 	}
 }
 
@@ -1592,20 +1731,20 @@ function setOutputFormat(element){
 	var value_element = element.value;
 	if(element.id.split('$$')[0] == 0){
 		if(isDate(element)){
-			var to_display  = moment(value_element, format.date.edit);
+			var to_display  = moment(value_element, format.date.edit, locale_lang, true);
 			var new_value   = to_display.format(format.date.display).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.date.edit);
+				new_value = moment(new_value, format.date.edit, locale_lang, true);
 				new_value = new_value.format(format.date.display).toString();
 			}
 		}
 		else{
-			var to_display  = moment(value_element, format.time.edit);
+			var to_display  = moment(value_element, format.time.edit, locale_lang, true);
 			var new_value   = to_display.format(format.time.display).toString();
 			if(!to_display.isValid(new_value)){
 				new_value = element.id.split('$$')[1];
-				new_value = moment(new_value, format.time.edit);
+				new_value = moment(new_value, format.time.edit, locale_lang, true);
 				new_value = new_value.format(format.time.display).toString();
 			}
 		}
@@ -1621,9 +1760,9 @@ function setOutputFormat(element){
  * @param value the new value to set for days
  */
 function updateDate(element, value, displayed_date){
-	var displayed_date  = moment.unix(displayed_date);
+	var displayed_date  = moment.unix(displayed_date).locale(locale_lang);
 	var date_input      = element.querySelector('.date');
-	var date            = moment(getInputFormat(date_input), format.date.edit);
+	var date            = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.date(value);
 	date.month(displayed_date.month());
 	date.year(displayed_date.year());
@@ -1642,11 +1781,16 @@ function updateDate(element, value, displayed_date){
 function updateDateRealInput(element){
 	var last_input    = getParentInput(element);
 	var last_value    = last_input.getAttribute('value');
-	var last_has_date = moment(last_value, original_format);
-	if(isDate(element)){
+	var last_has_date;
 
-		var new_date    = getInputFormat(element);
-		new_date        = moment(new_date, format.date.edit);
+	if(last_value === ''){
+		last_has_date = moment().locale(locale_lang);
+		last_value = last_has_date.format(original_format).toString();
+	}
+	last_has_date = moment(last_value, original_format, locale_lang, false);
+	if(isDate(element)){
+		var new_value    = getInputFormat(element);
+		var new_date        = moment(new_value, format.date.edit, locale_lang, true);
 
 		last_has_date.year(new_date.year());
 		last_has_date.month(new_date.month());
@@ -1656,7 +1800,7 @@ function updateDateRealInput(element){
 	}
 	else{
 		var new_time  = getInputFormat(element);
-		new_time      = moment(new_time, format.time.edit);
+		new_time      = moment(new_time, format.time.edit, locale_lang, true);
 
 		last_has_date.hour(new_time.hour());
 		last_has_date.minute(new_time.minute());
@@ -1674,7 +1818,7 @@ function updateDateRealInput(element){
  */
 function updateHour(element, value){
 	var time_input  = element.querySelector('.time');
-	var time        = moment(getInputFormat(time_input), format.time.edit);
+	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.hour(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
@@ -1692,7 +1836,7 @@ function updateLabels(element){
 	if(div_labels){
 		var input = getInputOfPopup(element);
 		var value = getOutputFormat(input);
-		var date  = moment(value, format.date.display);
+		var date  = moment(value, format.date.display, locale_lang, true);
 		var month = div_labels.querySelector('.month-popup');
 		var year  = div_labels.querySelector('.year-popup');
 
@@ -1712,7 +1856,7 @@ function updateLabels(element){
  */
 function updateMinute(element, value){
 	var time_input  = element.querySelector('.time');
-	var time        = moment(getInputFormat(time_input), format.time.edit);
+	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.minute(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
@@ -1728,7 +1872,7 @@ function updateMinute(element, value){
  */
 function updateMonth(element, value){
 	var date_input  = element.querySelector('.date');
-	var date        = moment(getInputFormat(date_input), format.date.edit);
+	var date        = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.month(value);
 	date_input.value  = date.format(format.date.edit);
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
@@ -1744,7 +1888,7 @@ function updateMonth(element, value){
  */
 function updateSecond(element, value){
 	var time_input  = element.querySelector('.time');
-	var time        = moment(getInputFormat(time_input), format.time.edit);
+	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.second(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
@@ -1760,7 +1904,7 @@ function updateSecond(element, value){
  */
 function updateYear(element, value){
 	var date_input  = element.querySelector('.date');
-	var date        = moment(getInputFormat(date_input), format.date.edit);
+	var date        = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.year(value);
 	date_input.value  = date.format(format.date.edit);
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
@@ -1783,7 +1927,7 @@ function yearSelectorClicked(element){
 	var popup                   = getPopupParent(table);
 
 	updateYear(popup.parentNode, element.innerHTML);
-	if(!contains(format.date.edit.split(''), 'D') && !contains(format.date.edit.split(''), 'M')){
+	if(!contains(getOrderDateEdit(), 'D') && !contains(getOrderDateEdit(), 'M')){
 		if(auto_close_when_more_precise_date_selected){
 			popup.style.display = "none";
 			popup.blur();
@@ -1792,7 +1936,7 @@ function yearSelectorClicked(element){
 	else{
 		displayPopup(popup, null);
 		if(auto_redirect_to_next_when_select_date){
-			if(contains(format.date.edit.split(''), 'M')){
+			if(contains(getOrderDateEdit(), 'M')){
 				var month_selector = popup.querySelector('.month-selector');
 				displaySelector(month_selector);
 			}
