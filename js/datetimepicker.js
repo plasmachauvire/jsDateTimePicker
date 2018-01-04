@@ -1,25 +1,88 @@
 /**
  * Define the format of date and time for display and for edition, not the format send by form (still unchanged)
+ *
+ * possible formats :
+ *
+ * M            month number
+ * MM           month number
+ * MMM          3 letters of month name
+ * MMMM         full month name
+ * dddd         full day name
+ * D            day number
+ * DD           day number
+ * Y            full year
+ * YY           last 2 numbers of year
+ * YYYY         full year
+ * [yourText]   will be displayed as text
+ * H            hour
+ * HH           hour
+ * h            hour
+ * hh           hour
+ * m            minute
+ * mm           minute
+ * s            second
+ * ss           second
+ * a            am / pm
+ * o            st / nd / rd / th --> Do : 1st / 2nd / 3rd / 4th / ...
+ * separators   for example separators like '/' , ',', ':', '-', ...
  */
 var format = {
 	date : {
-		edit    : 'DD-MM-YYYY',
-		display :'MMM DD YYYY'
+		edit    : 'DD-M-YYYY',
+		display :'MMM Do YYYY'
 	},
 	time : {
-		edit    : 'HH:mm:ss',
-		display : 'HH:mm'
+		edit    : 'HH:mm:ss a',
+		display : 'HH:mm a'
 	}
 };
+
+/**
+ * Original format of original input send with form
+ * @type {string}
+ */
 var original_format = 'DD/MM/YYYY hh:mm';
 
-// CONFIGURATION
-var live_check_input_date                       = 1;
+/*
+ * #################
+ * # CONFIGURATION #
+ * #################
+ */
+
+// ## Comportment ##
+
+var auto_close_when_more_precise_date_selected  = 0;  /*
+																											 * day is the most precise, then month
+																											 * and finaly year
+																											 */
+
+var auto_close_when_more_precise_time_selected  = 0;  /*
+                                                       * second is the most precise, then minute
+																											 * and finaly hour
+																											 */
+
+var auto_redirect_to_next_when_select_date      = 0;  /* redirection order : year -> month -> day */
+
+var auto_redirect_to_next_when_select_time      = 0;  /* redirection order : hour -> minute -> second */
+
+var live_check_input_date                       = 1;  /*
+																											 * in all cases, only check when date is in
+																											 * digit format (except for the st / nd / rd / ..
+                                                       * after day number)
+                                                       */
+
 var live_check_input_time                       = 1;
-var auto_redirect_to_next_when_select_date      = 0;
-var auto_redirect_to_next_when_select_time      = 0;
-var auto_close_when_more_precise_date_selected  = 0;
-var auto_close_when_more_precise_time_selected  = 0;
+
+var disabled_buttons_can_be_overred_and_clicked = 0;  /*
+                                                       * Disabled buttons like in date selector can't by
+																											 * default be selected (no action when click on it)
+																											 * and has'nt specific display when overred
+																											 */
+
+// ## Displaying ##
+var number_of_letters_for_days_name_in_selector = 3; // may have to adapt width of popup
+
+
 
 /**
  * Used to check if date / time user in being writing are correct
@@ -55,12 +118,28 @@ var regex = {
 		1 : '([a-Z])',
 		2 : '([a-Z]{2})'
 	},
+	H     : {
+		1 : '[0-2]',
+		2 : '([0-2][0-9])'
+	},
 	HH    : {
 		1 : '[0-2]',
 		2 : '([0-2][0-9])'
 	},
 	h     : '(([1-2][0-9])|([0-9]))',
+	hh    : {
+		1 : '[0-2]',
+		2 : '([0-2][0-9])'
+	},
+	m     : {
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
+	},
 	mm    : {
+		1 : '([0-5])',
+		2 : '([0-5][0-9])'
+	},
+	s     : {
 		1 : '([0-5])',
 		2 : '([0-5][0-9])'
 	},
@@ -154,7 +233,8 @@ function canBeValid(element){
 		}
 		else{
 			var checking_regex = regex[key_format];
-			if(key_format.length > 1){
+			if(!(typeof checking_regex === 'string')){
+
 				var done = false;
 				for(var j = 1; j < key_format.length; j++){
 					if(j < date_split.length){
@@ -299,9 +379,27 @@ function dateSelectorClicked(element, displayed_date){
 	td_selectable.forEach(function(element){
 		element.id                  = 'basic';
 	});
+	if(disabled_buttons_can_be_overred_and_clicked){
+		var disabled_td = table.querySelectorAll('.disabled-label');
+		disabled_td.forEach(function(element){
+			element.id                = 'basic';
+		});
+	}
 	element.id                    = 'clicked';
 
 	var popup                     = getPopupParent(table);
+
+	if(element.className === 'disabled-label'){
+		displayed_date  = moment.unix(displayed_date);
+		if(parseInt(element.innerHTML) > 15){
+			displayed_date.add(-1, 'months');
+		}
+		else if(parseInt(element.innerHTML) < 15){
+			displayed_date.add(1, 'months');
+		}
+		displayed_date = displayed_date.format('X');
+	}
+
 	updateDate(popup.parentNode, element.innerHTML, displayed_date);
 	if(auto_close_when_more_precise_date_selected){
 		popup.style.display           = "none";
@@ -604,13 +702,13 @@ function getHtmlForDateSelector(date, display_selection){
 
 	var html  = '<table class="day-selector" id="table-selector">'
 						+   '<tr id="tr-day-columns-names">'
-						+     '<th id="td-day-column-name">'+days[0].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[1].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[2].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[3].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[4].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[5].split('')[0]+'</th>'
-						+     '<th id="td-day-column-name">'+days[6].split('')[0]+'</th>'
+						+     '<th id="td-day-column-name">'+days[0].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[1].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[2].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[3].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[4].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[5].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
+						+     '<th id="td-day-column-name">'+days[6].substr(0, number_of_letters_for_days_name_in_selector)+'</th>'
 						+   '</tr>';
 
 
@@ -653,6 +751,13 @@ function getHtmlForDateSelector(date, display_selection){
 		}
 	}
 
+	var id_disabled = '';
+	var onclick_disable = '';
+	if(disabled_buttons_can_be_overred_and_clicked){
+		id_disabled = 'basic';
+		onclick_disable = 'dateSelectorClicked(this, '+display_date+')';
+	}
+
 
 	for(var i = 0; i < lines.length; i++){
 		if(lines[i] && lines[i][0] && lines[i][0][0]){
@@ -669,7 +774,7 @@ function getHtmlForDateSelector(date, display_selection){
 				}
 			}
 			else{
-				html += '<td class="td-date-selector-disabled"><label class="disabled-label">' + lines[i][j][0] + '</label></td>';
+				html += '<td class="td-date-selector-disabled"><label class="disabled-label" id="'+id_disabled+'" onclick="'+onclick_disable+'">' + lines[i][j][0] + '</label></td>';
 			}
 		}
 		html += '</tr>';
@@ -1205,6 +1310,10 @@ function initialiseDatePopup(element, display_date){
 	}
 
 	var day_number    = display_date.format('D');
+	if(contains(format.date.display.split(''), 'o')){
+		day_number      = display_date.format('Do');
+	}
+
 	var day_name      = display_date.format('dddd');
 	var month_name    = display_date.format('MMMM');
 	var year          = display_date.format('Y');
