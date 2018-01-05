@@ -189,24 +189,37 @@ var locale_lang = window.navigator.language;
  */
 
 var original_format;
-var format_date_edit="DD-MM-YYYY";
-var format_date_display="Do MMM YYYY";
-var format_time_edit="HH:mm";
-var format_time_display="HH:mm a";
+var format_date_edit          = "DD-MM-YYYY";
+var format_date_display       = "Do MMM YYYY";
+var format_time_edit          = "HH:mm";
+var format_time_display       = "HH:mm a";
+
+var auto_close_date           = 1;
+var auto_close_time           = 1;
+var auto_redirect_date        = 1;
+var auto_redirect_time        = 1;
+var live_check_date           = 1;
+var live_check_time           = 1;
+var active_disabled_buttons   = 0;
+var default_date              = '';
+var number_letters_day_name   = 3;
 
 
-/*var original_format = "DD/MM/YYYY HH:mm";
-var format_date_edit="DD-MM-YYYY";
-var format_date_display="Do MMM YYYY";
-var format_time_edit="HH:mm";
-var format_time_display="HH:mm a";*/
+/*
+var original_format           = "DD/MM/YYYY HH:mm";
+var format_date_edit          = "DD-MM-YYYY";
+var format_date_display       = "Do MMM YYYY";
+var format_time_edit          = "HH:mm";
+var format_time_display       = "HH:mm a";
+*/
 
 /*
 var original_format;
 var format_date_edit;
 var format_date_display;
 var format_time_edit;
-var format_time_display;*/
+var format_time_display;
+*/
 
 
 /**
@@ -797,42 +810,42 @@ function getConfiguration(element){
 	}
 
 	var configuration = {
-		auto_close_date         : 1,
-		auto_close_time         : 1,
-		auto_redirect_date      : 1,
-		auto_redirect_time      : 1,
-		live_check_date         : 1,
-		live_check_time         : 1,
-		active_disabled_buttons : 0,
-		default_date            : '',
-		number_letters_day_name : 3
+		auto_close_date         : auto_close_date,
+		auto_close_time         : auto_close_time,
+		auto_redirect_date      : auto_redirect_date,
+		auto_redirect_time      : auto_redirect_time,
+		live_check_date         : live_check_date,
+		live_check_time         : live_check_time,
+		active_disabled_buttons : active_disabled_buttons,
+		default_date            : default_date,
+		number_letters_day_name : number_letters_day_name
 	};
 
-	if(input.dataset.autoCloseDate && !(input.dataset.autoCloseDate == '1')){
-		configuration.auto_close_date = 0;
+	if(input.dataset.autoCloseDate && !(parseInt(input.dataset.autoCloseDate) === auto_close_date)){
+		configuration.auto_close_date = parseInt(input.dataset.autoCloseDate);
 	}
-	if(input.dataset.autoCloseTime && !(input.dataset.autoCloseTime == '1')){
-		configuration.auto_close_time = 0;
+	if(input.dataset.autoCloseTime && !(parseInt(input.dataset.autoCloseTime) === auto_close_time)){
+		configuration.auto_close_time = parseInt(input.dataset.autoCloseTime);
 	}
-	if(input.dataset.autoRedirectDate && !(input.dataset.autoRedirectDate == '1')){
-		configuration.auto_redirect_date = 0;
+	if(input.dataset.autoRedirectDate && !(parseInt(input.dataset.autoRedirectDate) === auto_redirect_date)){
+		configuration.auto_redirect_date = parseInt(input.dataset.autoRedirectDate);
 	}
-	if(input.dataset.autoRedirectTime && !(input.dataset.autoRedirectTime == '1')){
-		configuration.auto_redirect_time = 0;
+	if(input.dataset.autoRedirectTime && !(parseInt(input.dataset.autoRedirectTime) === auto_redirect_time)){
+		configuration.auto_redirect_time = parseInt(input.dataset.autoRedirectTime);
 	}
-	if(input.dataset.liveCheckDate && !(input.dataset.liveCheckDate == '1')){
-		configuration.live_check_date = 0;
+	if(input.dataset.liveCheckDate && !(parseInt(input.dataset.liveCheckDate) === live_check_date)){
+		configuration.live_check_date = parseInt(input.dataset.liveCheckDate);
 	}
-	if(input.dataset.liveCheckTime && !(input.dataset.liveCheckTime == '1')){
-		configuration.live_check_time = 0;
+	if(input.dataset.liveCheckTime && !(parseInt(input.dataset.liveCheckTime) === live_check_time)){
+		configuration.live_check_time = parseInt(input.dataset.liveCheckTime);
 	}
-	if(input.dataset.activeDisabledButtons && !(input.dataset.activeDisabledButtons == '0')){
-		configuration.active_disabled_buttons = 1;
+	if(input.dataset.activeDisabledButtons && !(parseInt(input.dataset.activeDisabledButtons) === active_disabled_buttons)){
+		configuration.active_disabled_buttons = parseInt(input.dataset.activeDisabledButtons);
 	}
-	if(input.dataset.defaultDate && !(input.dataset.defaultDate == '')){
+	if(input.dataset.defaultDate && !(input.dataset.defaultDate === default_date)){
 		configuration.default_date = input.dataset.defaultDate;
 	}
-	if(input.dataset.numberLettersDayName && !(input.dataset.numberLettersDayName == '3')){
+	if(input.dataset.numberLettersDayName && !(parseInt(input.dataset.numberLettersDayName) === number_letters_day_name)){
 		configuration.number_letters_day_name = parseInt(input.dataset.numberLettersDayName);
 	}
 
