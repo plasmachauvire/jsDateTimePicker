@@ -1,0 +1,205 @@
+/*
+ * Each line in hour selection is an am-hour-tr or a pm-hour-tr depending of if his content is in
+ * AM or PM
+ */
+.am-hour-tr, .pm-hour-tr{
+
+}
+
+/*
+ * Inputs date and time
+ */
+.date {
+	margin-right: 2px;
+}
+.time{
+
+}
+
+
+/*
+ * Table containing clickable td (label) to choose a day / hour / year / [...]
+ * all of these table has the same id="table-selector"
+ */
+.day-selector, .hour-selector, .minute-selector, .month-selector, .second-selector, .year-selector{
+
+}
+
+/*
+ * Each possible td id who needs to have different aspect when over
+ * display-selected and display-basic are for labels containing current date / time
+ * clicked and basic are for other labels in td (usually clickable)
+ */
+#basic:hover, #clicked:hover, #display-basic:hover, #display-selected:hover, .change-month:hover{
+	background:lightgreen;
+	border-radius: 10000px;
+	padding:3px;
+}
+
+/*
+ * label in a td who can be clicked to choose a month / year / hour / ...
+ * by default, also has id="basic" and can become id="clicked"
+ */
+.label-date-selector, .label-hour-selector, .label-minute-selector, .label-month-selector,
+.label-second-selector, .label-year-selector{
+	padding:3px;
+}
+
+/*
+ * both th are button in year selection to change decenie, also have id="basic"
+ */
+.label-next-ten, .label-prev-ten{
+	padding:3px;
+}
+
+/*
+ * tr of table where date / time is displayed
+ */
+#tr-display-date, #tr-display-time{
+
+}
+
+/*
+ * td of table where respectively "year, month, [...], second, '<', '>' and ':' " are displayed
+ */
+#td-display-day, #td-display-hour, #td-display-minute, #td-display-month,
+#td-display-second, #td-display-year{
+	width:30%;
+}
+
+#td-display-month-switch, #td-display-separator{
+	width:5%;
+}
+
+
+/*
+ * th containing labels "last 10" and "prev 10" in year selector
+ */
+.th-next-ten, .th-prev-ten{
+
+}
+
+/*
+ * td containing clickable label in selectors
+ */
+.td-date-selector, .td-date-selector-disabled, .td-hour-selector, .td-minute-selector,
+.td-month-selector, .td-second-selector, .td-year-selector{
+
+}
+
+/*
+ * Label in a td who can be clicked and permit to choose between am and pm in hour selection
+ * also has id="clicked" or id="basic" depending of which of both is choosen
+ */
+.td-hour-am-picker, .td-hour-pm-picker{
+	padding:3px;
+}
+
+#tr-hour-am-pm-picker{
+	height:40px;
+}
+
+#basic{
+
+}
+
+/*
+ * when a td / label is clicked / choosen
+ */
+#clicked{
+	background:bisque;
+	border-radius:10000px;
+	padding:3px;
+}
+
+/*
+ * div containing added inputs and popups
+ */
+.date-time-picker{
+	position:relative;
+}
+
+/*
+ * not-clickable td in table
+ */
+.disabled-label {
+	color:#D3D1D4;
+}
+
+#display-basic{
+	padding:3px;
+}
+
+/*
+ * Label containing (month || year || day || hour || minute || second)
+ */
+#display-selected{
+	border-radius: 10000px;
+	background:FloralWhite;
+	opacity:0.5;
+	padding:3px;
+}
+
+/*
+ * date popup
+ */
+.popup-date-picker {
+	border-radius: 5px;
+	padding: 20px;
+	margin-top: 29px;
+	margin-bottom: 20px;
+	position: absolute;
+	width: 450px;
+	top: 0;
+	background-color: rgba(0,93,186,0.9);
+	z-index: 1000;
+	cursor: pointer;
+}
+
+/*
+ * time popup
+ */
+.popup-time-picker {
+	border-radius: 5px;
+	padding: 20px;
+	margin-top: 29px;
+	margin-bottom: 20px;
+	position: absolute;
+	width: 450px;
+	top: 0;
+	background-color: rgba(0,93,186,0.9);
+	z-index: 1000;
+	cursor: pointer;
+}
+
+/*
+ * table containing display of current date / time
+ */
+.selector-display{
+	width:100%;
+	text-align:center;
+}
+
+/*
+ * table containing clickable td (labels) to select a date / time
+ */
+#table-selector{
+	width:100%;
+	text-align:center;
+}
+
+/*
+ * Td containing column name when present in selectors like day with first letter of each week day
+ */
+.td-day-column-name{
+
+}
+
+/*
+ * Tr containing each td which contains column name (see in day view for example)
+ */
+.tr-day-columns-names{
+
+}
+
+
