@@ -3,17 +3,24 @@
  * # REQUIREMENTS #
  * ################
  *
- * And input with class = "datetime"
- * This input must be in a div with class = "date_time"
- * This div must be in a div with the name you want
+ * ### Input
+ *
+ * And input with class = "datetime" to register the date-time-picker on it
  *
  * ## EXAMPLE :
  *
- * <div class="end_date" id="end_date">
- *    <div class="date_time class">
- *		  <input autocomplete="off" class="datetime" name="stop_date" value="23/12/2017 17:50">
- *		</div>
- * </div>
+ * <input autocomplete="off" class="datetime" name="stop_date" value="23/12/2017 17:50">
+ *
+ * ### Display
+ *
+ * To get right display, you need a container with class = "date_time" and the text directly inside of it
+ *
+ * ## EXAMPLES :
+ *
+ * #1 : <div class="date_time">23/12/2017 17:50"</div>
+ * #2 : <td class="date_time">23/12/2017 17:50"</td>
+ * #3 : <label class="date_time">23/12/2017 17:50"</label>
+ *
  */
 
 
@@ -58,16 +65,6 @@
  * advice : some format should'nt be used in edit format such as d / dd / ddd / dddd
  * or only with at least D for this example
  */
-var format = {
-	date : {
-		edit    : 'DD-MM-YYYY',
-		display :'Do MMM YYYY'
-	},
-	time : {
-		edit    : 'HH:mm:ss a',
-		display : 'HH:mm a'
-	}
-};
 
 var locale_lang = window.navigator.language;
 
@@ -259,8 +256,11 @@ var regex = {
 	}
 };
 
+var input_number = 0;
+
+var dates_input   = document.querySelectorAll('.datetime');
+dates_input.forEach(hideAndSetNew);
 var dates         = document.querySelectorAll('.date_time');
-dates.forEach(hideAndSetNew);
 dates.forEach(setDisplayFormat);
 
 var dates_inputs  = document.querySelectorAll('.date');
@@ -302,13 +302,16 @@ function arrayIndexOf(array, value){
 
 /**
  * Check if the given element value can be valid (we suppose that user is currently typing) or not
+ * @param element the input to check content
+ * @return true if can be valid, false else
  */
 function canBeValid(element){
-	var canBeValid = true;
+	var format = getFormat(element);
 
+	var canBeValid = true;
 	var valid_format;
 	if(isDate(element)){
-		if(!dateFormatIsOnlyDigit()){
+		if(!dateFormatIsOnlyDigit(element)){
 			return true;
 		}
 		valid_format = format.date.edit;
@@ -402,6 +405,7 @@ function changeDecenie(element){
  * @param element clicked button
  */
 function changeMonth(element){
+	var format = getFormat(element);
 	var popup           = getPopupParent(element);
 	var input           = getInputOfPopup(popup)
 	var current_date    = moment(getInputFormat(input), format.date.edit, locale_lang, true);
@@ -458,7 +462,7 @@ function changePartOfDay(element){
  * @param element the clicked label
  */
 function clickOnLabel(element){
-	var parentDiv   = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+	var parentDiv   = getPopupParent(element);
 	updateLabels(parentDiv);
 	var selector    = parentDiv.querySelector('.selector');
 	var name        = element.className.split('-')[0];
@@ -512,7 +516,7 @@ function dateSelectorClicked(element, displayed_date){
 		displayed_date = displayed_date.format('X');
 	}
 
-	updateDate(popup.parentNode, element.innerHTML, displayed_date);
+	updateDate(popup, element.innerHTML, displayed_date);
 	if(auto_close_when_more_precise_date_selected){
 		popup.style.display           = "none";
 		popup.blur();
@@ -528,7 +532,8 @@ function dateSelectorClicked(element, displayed_date){
  * Check if the date contains only digit basing on his format
  * @return true if the date format only contains digits
  */
-function dateFormatIsOnlyDigit(){
+function dateFormatIsOnlyDigit(element){
+	var format = getFormat(element);
 	var valid_format  = format.date.edit;
 	var ret           = true;
 	var split         = valid_format.split('M');
@@ -618,8 +623,10 @@ function eventFocusOnTime(element){
 
 /**
  * When user take out is finger of a key (key pushed is already written at this moment)
+ * @param element the input where the user where typing
  */
 function eventKeyUp(element){
+	var format = getFormat(element);
 	if((isDate(element) && live_check_input_date) || (!isDate(element) && live_check_input_time)){
 		if(canBeValid(element)){
 			element.style.borderColor = '';
@@ -719,10 +726,16 @@ function focusOutPopup(element, event){
 	}
 }
 
+/**
+ * Get date to use when original input is empty
+ * @param last_input original input
+ * @returns {*}
+ */
 function getDateWhenLastIsEmpty(last_input){
+	var format = getFormat(last_input);
 	if("date" in format){
-		var parent = last_input.parentNode.parentNode;
-		var date_input = parent.querySelector('.date');
+		var id = last_input.className.split('date-picker-')[1];
+		var date_input = document.querySelector('.date-'+id);
 		var value_date;
 		if(date_input.value !== ''){
 			value_date = date_input.value;
@@ -750,6 +763,40 @@ function getDateWhenLastIsEmpty(last_input){
 		date = date.format(original_format).toString();
 		return date;
 	}
+}
+
+function getFormat(element){
+	var input = element;
+	if(!(element.className.indexOf('datetime') !== -1 || element.className.indexOf('date_time') !== -1)){
+		if(element.className === 'popup-time-picker' || element.className === 'popup-date-picker'){
+			input = getParentInput(getInputOfPopup(element));
+		}
+		else if(element.className.split(' ')[0] === 'time' || element.className.split(' ')[0] === 'date'){
+				input = getParentInput(element);
+			}
+		else{
+			var popup = getPopupParent(element);
+			if(popup){
+				input = getParentInput(getInputOfPopup(popup));
+			}
+			else{
+				return false;
+			}
+		}
+	}
+	var format = {};
+	if(input.dataset.formatDateEdit || input.dataset.formatDateDisplay){
+		format.date = {};
+		format.date.edit    = input.dataset.formatDateEdit ? input.dataset.formatDateEdit : input.dataset.formatDateDisplay ;
+		format.date.display = input.dataset.formatDateDisplay ? input.dataset.formatDateDisplay : input.dataset.formatDateEdit;
+	}
+
+	if(input.dataset.formatTimeEdit || input.dataset.formatTimeDisplay){
+		format.time = {};
+		format.time.edit    = input.dataset.formatTimeEdit ? input.dataset.formatTimeEdit : input.dataset.formatTimeDisplay;
+		format.time.display = input.dataset.formatTimeDisplay ? input.dataset.formatTimeDisplay : input.dataset.formatTimeEdit;
+	}
+	return format;
 }
 
 /**
@@ -1198,6 +1245,7 @@ function getHtmlForYearSelector(date, year){
  * @returns {*}
  */
 function getInputFormat(element){
+	var format = getFormat(element);
 	if(isDate(element)){
 		if(element.id.split('$$')[0] == 1){
 			var to_display  = moment(element.value, format.date.display, locale_lang, true);
@@ -1287,9 +1335,11 @@ function getMonths(){
 
 /**
  * Get order of display in dateEdit and so permit to know what has to be displayed
+ * @param element object being used with format to analyse, can be any child of popup
  * @returns {Array}
  */
-function getOrderDateEdit(){
+function getOrderDateEdit(element){
+	var format = getFormat(element);
 	var order = [];
 	var j = 0;
 	var split_format  = format.date.edit.split('');
@@ -1336,6 +1386,8 @@ function getOrderDateEdit(){
  * @returns {*} the value as output format
  */
 function getOutputFormat(element){
+	var format = getFormat(element);
+
 	if(isDate(element)){
 		if(element.id.split('$$')[0] == 0){
 			var to_display  = moment(element.value, format.date.edit, locale_lang, true);
@@ -1379,11 +1431,18 @@ function getOutputFormat(element){
 
 /**
  * Get dateTime input who will be send with the form and has been visually replaced
+ * @param element and input .date or .time
  */
 function getParentInput(element){
-	var parent_div  = element.parentNode.parentNode;
-	var last_div    = parent_div.querySelector('.date_time');
-	return last_div.querySelector('.datetime');
+	var id;
+	if(isDate(element)){
+		id = element.className.split('date-')[1];
+	}
+	else{
+		id = element.className.split('time-')[1];
+	}
+	var parentInput = document.querySelector('.date-picker-'+id);
+	return parentInput;
 }
 
 /**
@@ -1392,6 +1451,9 @@ function getParentInput(element){
  * @returns {(() => Node) | ActiveX.IXMLDOMNode | Node | SVGElementInstance} the popup
  */
 function getPopupParent(element){
+	if(element.className === 'popup-date-picker' || element.className === 'popup-time-picker'){
+		return element;
+	}
 	var found = false;
 	var node  = element.parentNode;
 	var i     = 0;
@@ -1405,23 +1467,24 @@ function getPopupParent(element){
 		}
 		i++;
 	}
+	if(!found){
+		node = false;
+	}
 	return node;
 }
 
 /**
  * Hide precedent dateTime input and set the new one(s)
  */
-function hideAndSetNew(element, index, array){
-	var last_input        = element.querySelector('.datetime');
-	if(last_input){
+function hideAndSetNew(element){
+		var format = getFormat(element);
 		element.style.display = 'none';
-		var parentDiv         = element.parentNode;
-		var name_last_input   = last_input.getAttribute('name');
+		element.className  += ' date-picker-' + input_number.toString();
+		var name_last_input   = element.getAttribute('name');
 		var date_input        = name_last_input + '_date';
 		var time_input        = name_last_input + '_time';
-		var last_input_value  = last_input.getAttribute('value');
+		var last_input_value  = element.getAttribute('value');
 		var isEmpty           = false;
-
 
 		if(last_input_value === ''){
 			isEmpty = true;
@@ -1436,42 +1499,45 @@ function hideAndSetNew(element, index, array){
 
 		var display_date      = moment(last_input_value, original_format, locale_lang, false);
 
-		parentDiv.innerHTML   +=  '<div class="date-time-picker"></div>';
-		parentDiv = parentDiv.querySelector('.date-time-picker');
+
+		var html   =  '<div class="date-time-picker">';
 
 		if("date" in format){
 			var date              = display_date.format(format.date.display).toString();
 			if(isEmpty && default_date === ''){
-				parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
-															+ 'name="'+date_input+'" value="">';
+				html  += '<input autocomplete="off" class="date date-'+input_number+'" id="1$$'+date+'" '
+							 + 'name="'+date_input+'" value="">';
 			}
 			else{
-				parentDiv.innerHTML   += '<input autocomplete="off" class="date" id="1$$'+date+'" '
-															+ 'name="'+date_input+'" value="'+date+'">';
+				html   += '<input autocomplete="off" class="date date-'+input_number+'" id="1$$'+date+'" '
+								+ 'name="'+date_input+'" value="'+date+'">';
 			}
 		}
 		if("time" in format){
 			var time              = display_date.format(format.time.display).toString();
 			if(isEmpty && default_date === ''){
-				parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
-															+ 'name="'+time_input+'" value="">';
+				html   += '<input autocomplete="off" class="time time-'+input_number+'" id="1$$'+time+'" '
+								+ 'name="'+time_input+'" value="">';
 			}
 			else{
-				parentDiv.innerHTML   += '<input autocomplete="off" class="time" id="1$$'+time+'" '
-															+ 'name="'+time_input+'" value="'+time+'">';
+				html  += '<input autocomplete="off" class="time time-'+input_number+'" id="1$$'+time+'" '
+							 + 'name="'+time_input+'" value="'+time+'">';
 			}
 		}
 
 		if("date" in format){
-			parentDiv.innerHTML   += '<div class="popup-date-picker" tabindex="-1" style="display:none">'
-														+  '</div>';
+			html   += '<div class="popup-date-picker" tabindex="-1" style="display:none">'
+							+  '</div>';
 		}
 		if("time" in format){
-			parentDiv.innerHTML   += '<div class="popup-time-picker" tabindex="-1" style="display:none">'
-														+  '</div>';
+			html   += '<div class="popup-time-picker" tabindex="-1" style="display:none">'
+							+  '</div>';
 		}
-	}
 
+		html += '</div>';
+		element.insertAdjacentHTML('afterend', html);
+
+		input_number++;
 }
 
 /**
@@ -1479,6 +1545,7 @@ function hideAndSetNew(element, index, array){
  * @param element the clicked hour (td)
  */
 function hourSelectorClicked(element){
+	var format = getFormat(element);
 	var table         = element.parentNode.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-hour-selector');
 	td_selectable.forEach(function(element){
@@ -1487,7 +1554,7 @@ function hourSelectorClicked(element){
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
-	updateHour(popup.parentNode, element.innerHTML);
+	updateHour(popup, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 'm') && !contains(format.time.edit.split(''), 's')){
 		if(auto_close_when_more_precise_time_selected){
@@ -1519,6 +1586,10 @@ function hourSelectorClicked(element){
  * @param element the date popup
  */
 function initialiseDatePopup(element, display_date){
+
+	var format = getFormat(element);
+
+
 	var output_date       = getOutputFormat(element.parentNode.querySelector('.date'));
 	var date              = moment(output_date, format.date.display, locale_lang, true);
 	var display_selection = false;
@@ -1531,7 +1602,7 @@ function initialiseDatePopup(element, display_date){
 		display_date      = date;
 		display_selection = true;
 	}
-	var order         = getOrderDateEdit();
+	var order         = getOrderDateEdit(element);
 
 	element.innerHTML += '<div class="date-in-popup"></div>';
 	var div_date      = element.querySelector('.date-in-popup');
@@ -1597,6 +1668,7 @@ function initialiseDatePopup(element, display_date){
  * @param element the time popup
  */
 function initialiseTimePopup(element){
+	var format = getFormat(element);
 	var input_time      = getInputFormat(element.parentNode.querySelector('.time'));
 	var time            = moment(input_time, format.time.edit, locale_lang, true);
 	var hour            = null;
@@ -1662,7 +1734,7 @@ function initialiseTimePopup(element){
  * @param element the input to check if is a date or a time input
  */
 function isDate(element){
-	return element.getAttribute('class') === 'date';
+	return element.getAttribute('class').split(' ')[0] === 'date';
 }
 
 /**
@@ -1670,6 +1742,7 @@ function isDate(element){
  * @param element the clicked minute (td)
  */
 function minuteSelectorClicked(element){
+	var format = getFormat(element);
 	var table         = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-minute-selector');
 	td_selectable.forEach(function(element){
@@ -1678,7 +1751,7 @@ function minuteSelectorClicked(element){
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
-	updateMinute(popup.parentNode, element.innerHTML);
+	updateMinute(popup, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 's')){
 		if(auto_close_when_more_precise_time_selected){
@@ -1712,8 +1785,8 @@ function monthSelectorClicked(element){
 	element.id                  = 'clicked';
 
 	var popup                   = getPopupParent(table);
-	updateMonth(popup.parentNode, element.innerHTML);
-	if(!contains(getOrderDateEdit(), 'D')){
+	updateMonth(popup, element.innerHTML);
+	if(!contains(getOrderDateEdit(element), 'D')){
 		if(auto_close_when_more_precise_date_selected){
 			popup.style.display = "none";
 			popup.blur();
@@ -1745,7 +1818,7 @@ function secondSelectorClicked(element){
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
-	updateSecond(popup.parentNode, element.innerHTML);
+	updateSecond(popup, element.innerHTML);
 
 	if(auto_close_when_more_precise_time_selected){
 		popup.style.display         = "none";
@@ -1762,6 +1835,7 @@ function secondSelectorClicked(element){
  * @param element the input to set on edit format
  */
 function setInputFormat(element){
+	var format = getFormat(element);
 	if(element.id.split('$$')[0] == 1){
 		var value_element = element.value;
 		if(isDate(element)){
@@ -1795,9 +1869,9 @@ function setInputFormat(element){
  * @param element the div with the date inside
  */
 function setDisplayFormat(element){
+	var format = getFormat(element);
 	var input = element.querySelector('.datetime');
 	if(!input){
-		var parent = element.parentNode;
 		var value = element.innerHTML;
 		value = moment(value, original_format, locale_lang, false);
 		var to_display = '';
@@ -1812,7 +1886,7 @@ function setDisplayFormat(element){
 		}
 
 		if(("time" in format) || ("date" in format)){
-			parent.innerHTML += '<div class="'+element.className+'_display">' + to_display + '</div>';
+			element.insertAdjacentHTML('afterend', '<div class="'+element.className+'_display">' + to_display + '</div>');
 			element.style.display = "none";
 		}
 
@@ -1844,6 +1918,7 @@ function setListenersTime(element){
  * @param element the input to set to output format
  */
 function setOutputFormat(element){
+	var format = getFormat(element);
 	var value_element = element.value;
 	if(element.id.split('$$')[0] == 0){
 		if(isDate(element)){
@@ -1877,12 +1952,13 @@ function setOutputFormat(element){
 
 /**
  * Update the date (day) with the new value
- * @param element the div containing inputs
+ * @param element the popup
  * @param value the new value to set for days
  */
 function updateDate(element, value, displayed_date){
+	var format = getFormat(element);
 	var displayed_date  = moment.unix(displayed_date).locale(locale_lang);
-	var date_input      = element.querySelector('.date');
+	var date_input      = getInputOfPopup(element);
 	var date            = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.date(value);
 	date.month(displayed_date.month());
@@ -1897,9 +1973,10 @@ function updateDate(element, value, displayed_date){
 
 /**
  * Update value of real (not displayed) input used for form
- * @param element the input
+ * @param element the input (.date or .time)
  */
 function updateDateRealInput(element){
+	var format = getFormat(element);
 	if(element.value === '' && default_date === ''){
 
 	}
@@ -1940,11 +2017,12 @@ function updateDateRealInput(element){
 
 /**
  * Update hour
- * @param element div containing date / time inputs
+ * @param element the popup
  * @param value new value for hours
  */
 function updateHour(element, value){
-	var time_input  = element.querySelector('.time');
+	var format = getFormat(element);
+	var time_input  = getInputOfPopup(element);
 	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.hour(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
@@ -1959,6 +2037,7 @@ function updateHour(element, value){
  * @param element popup
  */
 function updateLabels(element){
+	var format = getFormat(element);
 	var div_labels = element.querySelector('.date-in-popup');
 	if(div_labels){
 		var input = getInputOfPopup(element);
@@ -1978,11 +2057,12 @@ function updateLabels(element){
 
 /**
  * Update minute
- * @param element div containing date / time inputs
+ * @param element the popup
  * @param value new value for minutes
  */
 function updateMinute(element, value){
-	var time_input  = element.querySelector('.time');
+	var format = getFormat(element);
+	var time_input  = getInputOfPopup(element);
 	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.minute(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
@@ -1994,11 +2074,12 @@ function updateMinute(element, value){
 
 /**
  * Update month
- * @param element div containing date / time inputs
+ * @param element the popup
  * @param value new value for months
  */
 function updateMonth(element, value){
-	var date_input  = element.querySelector('.date');
+	var format = getFormat(element);
+	var date_input  = getInputOfPopup(element);
 	var date        = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.month(value);
 	date_input.value  = date.format(format.date.edit);
@@ -2010,11 +2091,12 @@ function updateMonth(element, value){
 
 /**
  * Update second
- * @param element div containing date / time inputs
+ * @param element the popup
  * @param value new value for seconds
  */
 function updateSecond(element, value){
-	var time_input  = element.querySelector('.time');
+	var format = getFormat(element);
+	var time_input  = getInputOfPopup(element);
 	var time        = moment(getInputFormat(time_input), format.time.edit, locale_lang, true);
 	time.second(parseInt(value));
 	time_input.value  = time.format(format.time.edit);
@@ -2026,11 +2108,12 @@ function updateSecond(element, value){
 
 /**
  * Update year
- * @param element div containing date / time inputs
+ * @param element the popup
  * @param value new value for years
  */
 function updateYear(element, value){
-	var date_input  = element.querySelector('.date');
+	var format = getFormat(element);
+	var date_input  = getInputOfPopup(element);
 	var date        = moment(getInputFormat(date_input), format.date.edit, locale_lang, true);
 	date.year(value);
 	date_input.value  = date.format(format.date.edit);
@@ -2053,8 +2136,10 @@ function yearSelectorClicked(element){
 	element.id                  = 'clicked';
 	var popup                   = getPopupParent(table);
 
-	updateYear(popup.parentNode, element.innerHTML);
-	if(!contains(getOrderDateEdit(), 'D') && !contains(getOrderDateEdit(), 'M')){
+	var order = getOrderDateEdit(element);
+
+	updateYear(popup, element.innerHTML);
+	if(!contains(order, 'D') && !contains(order, 'M')){
 		if(auto_close_when_more_precise_date_selected){
 			popup.style.display = "none";
 			popup.blur();
@@ -2063,7 +2148,7 @@ function yearSelectorClicked(element){
 	else{
 		displayPopup(popup, null);
 		if(auto_redirect_to_next_when_select_date){
-			if(contains(getOrderDateEdit(), 'M')){
+			if(contains(order, 'M')){
 				var month_selector = popup.querySelector('.month-selector');
 				displaySelector(month_selector);
 			}

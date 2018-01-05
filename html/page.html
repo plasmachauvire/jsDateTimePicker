@@ -9,24 +9,31 @@
 
 	<body>
 
-		<div class="start_date" id="start_date">
-			<label title="date de début">From empty input</label>
-			<div class="date_time class"><input autocomplete="off" class="datetime" name="start_date" value=""></div>
-		</div>
+		<label title="date de début">From empty input</label>
+		<input autocomplete="off"
+			data-format-date-edit="MM-YYYY"
+			data-format-date-display="MM-YYYY"
+			data-format-time-edit="HH"
+			data-format-time-display="HH a"
+			class="datetime" name="start_date" value="">
 
 
-		<div class="end_date" id="end_date">
-			<label title="date de début">From pre-filled input</label>
-			<div class="date_time class"><input autocomplete="off" class="datetime" name="stop_date" value="23/12/2017 17:50"></div>
-		</div>
+		<label title="date de début">From pre-filled input</label>
+		<input autocomplete="off"
+			data-format-date-edit="DD-MM-YYYY"
+			data-format-date-display="Do MMM YYYY"
+			data-format-time-edit="HH:mm:ss"
+			data-format-time-display="HH:mm a"
+			class="datetime" name="stop_date" value="23/12/2017 17:50">
 
 		<br />
 		<br />
 
-		<div class="start_date_display" id="start_date_display">
-			<label title="date de début affichage">Displaying only : </label>
-			<div class="date_time class">23/12/2017 17:50</div>
-		</div>
+		<label title="date de début affichage">Displaying only : </label>
+		<div
+			data-format-date-display="Do MMM YYYY"
+			data-format-time-display="HH:mm a"
+			class="date_time class">23/12/2017 17:50</div>
 
 	</body>
 
