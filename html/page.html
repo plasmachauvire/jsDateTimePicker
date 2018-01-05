@@ -9,31 +9,152 @@
 
 	<body>
 
-		<label title="date de début">From empty input</label>
-		<input autocomplete="off"
-			data-format-date-edit="MM-YYYY"
-			data-format-date-display="MM-YYYY"
-			data-format-time-edit="HH"
-			data-format-time-display="HH a"
-			class="datetime" name="start_date" value="">
+		<table style="width:100%">
+			<tr style="width:100%">
+				<td style="width:50%">
+					<label title="From empty input">From empty input (no default value)</label>
+					<br />
+					<input autocomplete="off"
+						data-format-date-edit="MM-YYYY"
+						data-format-date-display="MM-YYYY"
+						data-format-time-edit="HH"
+						data-format-time-display="HH a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						class="datetime" name="0" value="">
+					<br />
+				</td>
+				<td style="width:50%">
+					<label title="From empty input">From empty input (default value = 01/01/2018 11:00)</label>
+					<br />
+					<input autocomplete="off"
+						data-format-date-edit="MM-YYYY"
+						data-format-date-display="MM-YYYY"
+						data-format-time-edit="HH"
+						data-format-time-display="HH a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-default-date="01/01/2018 11:00"
+						class="datetime" name="01" value="">
+					<br />
+				</td>
+			</tr>
+
+			<tr>
+				<td style="width:50%">
+					<label title="From empty input">From empty input (default value = now)</label>
+					<br />
+					<input autocomplete="off"
+						data-format-date-edit="MM-YYYY"
+						data-format-date-display="MM-YYYY"
+						data-format-time-edit="HH"
+						data-format-time-display="HH a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-default-date="now"
+						class="datetime" name="02" value="">
+					<br />
+				</td>
+				<td style="width:50%">
+					<br />
+					<label title="From pre-filled input">From pre-filled input (basic configuration)</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						class="datetime" name="1" value="23/12/2017 17:50">
+					<br />
+				</td>
+			</tr>
+
+			<tr>
+				<td style="width:50%">
+					<br />
+					<label title="Displaying only">Displaying only (from date_time div without input)</label>
+					<div
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-display="HH:mm a"
+						data-original-format = "DD/MM/YYYY HH:mm"
+						class="date_time class">23/12/2017 17:50</div>
+					<br />
+				</td>
+				<td style="width:50%">
+					<br />
+					<label title="No auto-close">No auto-close</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-auto-close-date="0"
+						data-auto-close-time="0"
+						class="datetime" name="2" value="23/12/2017 17:50">
+					<br />
+				</td>
+			</tr>
+
+			<tr>
+				<td style="width:50%">
+					<br />
+					<label title="No redirect">No auto-redirect but keep auto-close</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-auto-redirect-date="0"
+						data-auto-redirect-time="0"
+						class="datetime" name="3" value="23/12/2017 17:50">
+					<br />
+				</td>
+				<td style="width:50%">
+					<br />
+					<label title="No check">No live check (type in input to see)</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-live-check-date="0"
+						data-live-check-time="0"
+						class="datetime" name="3" value="23/12/2017 17:50">
+					<br />
+				</td>
+			</tr>
+
+			<tr>
+				<td style="width:50%">
+					<br />
+					<label title="day name one letter">1 letter for day name</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-number-letters-day-name="1"
+						class="datetime" name="4" value="23/12/2017 17:50">
+					<br />
+				</td>
+				<td style="width:50%">
+					<br />
+					<label title="grey buttons enabled">Grey buttons enabled in day view</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm a"
+						data-original-format="DD/MM/YYYY HH:mm"
+						data-active-disabled-buttons="1"
+						class="datetime" name="5" value="23/12/2017 17:50">
+					<br />
+				</td>
+			</tr>
 
 
-		<label title="date de début">From pre-filled input</label>
-		<input autocomplete="off"
-			data-format-date-edit="DD-MM-YYYY"
-			data-format-date-display="Do MMM YYYY"
-			data-format-time-edit="HH:mm:ss"
-			data-format-time-display="HH:mm a"
-			class="datetime" name="stop_date" value="23/12/2017 17:50">
-
-		<br />
-		<br />
-
-		<label title="date de début affichage">Displaying only : </label>
-		<div
-			data-format-date-display="Do MMM YYYY"
-			data-format-time-display="HH:mm a"
-			class="date_time class">23/12/2017 17:50</div>
+		</table>
 
 	</body>
 

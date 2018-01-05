@@ -9,9 +9,13 @@
 /*
  * Inputs date and time
  */
-.date, .time{
+.date {
+	margin-right: 2px;
+}
+.time{
 
 }
+
 
 /*
  * Table containing clickable td (label) to choose a day / hour / year / [...]

@@ -7,9 +7,48 @@
  *
  * And input with class = "datetime" to register the date-time-picker on it
  *
- * ## EXAMPLE :
+ * ## EXAMPLES :
  *
- * <input autocomplete="off" class="datetime" name="stop_date" value="23/12/2017 17:50">
+ * #1 :
+ * <input autocomplete="off"
+ * data-original-format = "DD/MM/YYYY HH:mm"
+ * data-format-date-edit="MM-YYYY"
+ * data-format-date-display="MM-YYYY"
+ * data-format-time-edit="HH"
+ * data-format-time-display="HH a"
+ * class="datetime" name="stop_date" value="23/12/2017 17:50">
+ *
+ * #2 :
+ *
+ * <input autocomplete="off"
+ * data-original-format = "DD/MM/YYYY HH:mm"
+ * data-format-date-edit="MM-YYYY"
+ * data-format-date-display="MM-YYYY"
+ * data-format-time-edit="HH"
+ * data-format-time-display="HH a"
+ * data-auto-close-date="0"
+ * data-auto-close-time="0"
+ * data-auto-redirect-date="0"
+ * data-auto-redirect-time="0"
+ * data-live-check-date="0"
+ * data-live-check-time="0"
+ * data-active-disabled-buttons="1"
+ * data-default-date="now"
+ * data-number-letters-day-name="2"
+ * class="datetime" name="stop_date" value="">
+ *
+ * #3 :
+ *
+ * <input autocomplete="off"
+ * data-original-format = "DD/MM/YYYY HH:mm"
+ * data-format-date-edit="MM-YYYY"
+ * data-format-date-display="MM-YYYY"
+ * data-format-time-edit="HH"
+ * data-format-time-display="HH a"
+ * data-default-date="23/12/2017 17:50"
+ * data-number-letters-day-name="1"
+ * class="datetime" name="stop_date" value="">
+ *
  *
  * ### Display
  *
@@ -17,17 +56,25 @@
  *
  * ## EXAMPLES :
  *
- * #1 : <div class="date_time">23/12/2017 17:50"</div>
- * #2 : <td class="date_time">23/12/2017 17:50"</td>
- * #3 : <label class="date_time">23/12/2017 17:50"</label>
+ * #1 : <div
+ *      data-format-date-display="Do MMM YYYY"
+ *			data-format-time-display="HH:mm a"
+ *			class="date_time">23/12/2017 17:50"</div>
  *
- */
-
-
-/*
- * Define the format of date and time for display and for edition, not the format send by form (still unchanged)
+ * #2 : <td
+ *      data-format-date-display="Do MMM YYYY"
+ *			data-format-time-display="HH:mm a"
+ *			class="date_time">23/12/2017 17:50"</td>
  *
- * possible formats :
+ * #3 : <label
+ *      data-format-date-display="Do MMM YYYY"
+ *	    data-format-time-display="HH:mm a"
+ *      class="date_time">23/12/2017 17:50"</label>
+ *
+ *
+ * #####################
+ * # AVAILABLE FORMATS #
+ * #####################
  *
  * a            am / pm
  * A            AM / PM
@@ -64,110 +111,71 @@
  *
  * advice : some format should'nt be used in edit format such as d / dd / ddd / dddd
  * or only with at least D for this example
- */
+ *
+ *
+ * #######################
+ * # EXAMPLES OF FORMATS #
+ * #######################
+ *
+ * ## basic
+ * data-format-date-edit="DD-M-YYYY"
+ * data-format-date-display="MMM Do YYY"
+ * data-format-time-edit="HH:mm:ss a"
+ * data-format-time-display="HH:mm a"
+ *
+ * ## weeks of year
+ * data-format-date-edit="w [of] Y"
+ * data-format-date-display="[week] w [of] Y"
+ *
+ * ## only an hour + minute
+ * data-format-time-edit="HH:mm"
+ * data-format-time-display="HH:mm a"
+ *
+ * ## day number in year + time only hour
+ * data-format-date-edit="DDD-YYYY"
+ * data-format-date-display="DDDo [day of] Y"
+ * data-format-time-edit="HH"
+ * data-format-time-display="HH a"
 
-var locale_lang = window.navigator.language;
-
-/*
-
-#######################
-# EXAMPLES OF FORMATS #
-#######################
-
-## basic
-var format = {
-	date : {
-		edit    : 'DD-M-YYYY',
-		display :'MMM Do YYYY'
-	},
-	time : {
-		edit    : 'HH:mm:ss a',
-		display : 'HH:mm a'
-	}
-};
-
-## weeks of year
-var format = {
-	date : {
-		edit    : 'w [of] Y',
-		display : '[week] w [of] Y'
-	}
-};
-
-## only and hour + minute
-var format = {
-	time : {
-		edit    : 'HH:mm',
-		display : 'HH:mm a'
-	}
-};
-
-## day number in year + time only hour
-var format = {
-	date : {
-		edit    : 'DDD-YYYY',
-		display :'DDDo [day of] Y'
-	},
-	time : {
-		edit    : 'HH',
-		display : 'HH a'
-	}
-};
-
-*/
-
-/**
- * Original format of original input send with form
- * @type {string}
- */
-var original_format = 'DD/MM/YYYY HH:mm';
-
-/*
  * #################
  * # CONFIGURATION #
  * #################
+ *
+ * ## Comportment ##
+ * data-auto-close-date = 1         : day is the most precise, then month and finaly year
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-auto-close-time = 1         : second is the most precise, then minute and finaly hour
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-auto-redirect-date = 1      : redirection order : year -> month -> day
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-auto-redirect-time = 1      : redirection order : hour -> minute -> second
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-live-check-date = 1         :  in all cases, only check when date is in digit format
+ *                                   (except for the st / nd / rd / .. after day number)
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-live-check-time = 1
+ * possible values : 0 for disabled, 1 for enabled
+ *
+ * data-active-disabled-buttons = 0 : Disabled buttons like in date selector can't by default be selected
+ *                                    (no action when click on it) and has'nt specific display when overred
+ * possible values : 0 for disabled, 1 for enabled them
+ *
+ * data-default-date = ''           : Default date to set when input is empty at loading,
+ * possible values : 'now', '' (no date) or a date in original format
+ *
+ *
+ * ## Appearance ##
+ * data-number-letters-day-name = 3 : ! May have to adapt width of popup depending of this !
+ * possible values : any number (also 0 but should'nt be used)
+ *
  */
 
-// ## Comportment ##
-
-var auto_close_when_more_precise_date_selected  = 0;  /*
-																											 * day is the most precise, then month
-																											 * and finaly year
-																											 */
-
-var auto_close_when_more_precise_time_selected  = 0;  /*
-                                                       * second is the most precise, then minute
-																											 * and finaly hour
-																											 */
-
-var auto_redirect_to_next_when_select_date      = 0;  /* redirection order : year -> month -> day */
-
-var auto_redirect_to_next_when_select_time      = 0;  /* redirection order : hour -> minute -> second */
-
-var live_check_input_date                       = 1;  /*
-																											 * in all cases, only check when date is in
-																											 * digit format (except for the st / nd / rd / ..
-                                                       * after day number)
-                                                       */
-
-var live_check_input_time                       = 1;
-
-var disabled_buttons_can_be_overred_and_clicked = 0;  /*
-                                                       * Disabled buttons like in date selector can't by
-																											 * default be selected (no action when click on it)
-																											 * and has'nt specific display when overred
-																											 */
-
-var default_date                                = ''; /*
-																											 * Default date to set when input is empty at
-																											 * loading, can be 'now', '' (no date) or a date
-																											 * in original format
-																											 */
-
-// ## Displaying ##
-var number_of_letters_for_days_name_in_selector = 3; // ! may have to adapt width of popup !
-
-
+var locale_lang = window.navigator.language;
 
 /**
  * Used to check if date / time user in being writing are correct
@@ -415,7 +423,7 @@ function changeMonth(element){
 	current_date.year(parseInt(year));
 	current_date.month(month);
 
-	if(element.id == 'prev'){
+	if(element.id === 'prev'){
 		current_date.add(-1, 'months');
 	}
 	else{
@@ -490,12 +498,14 @@ function contains(array, value){
  * @param element the clicked day (<label>)
  */
 function dateSelectorClicked(element, displayed_date){
+	var configuration = getConfiguration(element);
+
 	var table         = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-date-selector');
 	td_selectable.forEach(function(element){
 		element.id                  = 'basic';
 	});
-	if(disabled_buttons_can_be_overred_and_clicked){
+	if(configuration.active_disabled_buttons){
 		var disabled_td = table.querySelectorAll('.disabled-label');
 		disabled_td.forEach(function(element){
 			element.id                = 'basic';
@@ -517,7 +527,7 @@ function dateSelectorClicked(element, displayed_date){
 	}
 
 	updateDate(popup, element.innerHTML, displayed_date);
-	if(auto_close_when_more_precise_date_selected){
+	if(configuration.auto_close_date){
 		popup.style.display           = "none";
 		popup.blur();
 	}
@@ -626,8 +636,11 @@ function eventFocusOnTime(element){
  * @param element the input where the user where typing
  */
 function eventKeyUp(element){
+	var configuration = getConfiguration(element);
 	var format = getFormat(element);
-	if((isDate(element) && live_check_input_date) || (!isDate(element) && live_check_input_time)){
+
+	if((isDate(element) && configuration.live_check_date)
+		|| (!isDate(element) && configuration.live_check_time)){
 		if(canBeValid(element)){
 			element.style.borderColor = '';
 			element.style.borderWidth = '';
@@ -727,6 +740,74 @@ function focusOutPopup(element, event){
 }
 
 /**
+ * Get specific configuration of given element
+ * @param element any "child" of initial input himself included
+ * @returns {*} special configurations
+ */
+function getConfiguration(element){
+	var input = element;
+	if(!(element.className.indexOf('datetime') !== -1 || element.className.indexOf('date_time') !== -1)){
+		if(element.className === 'popup-time-picker' || element.className === 'popup-date-picker'){
+			input = getParentInput(getInputOfPopup(element));
+		}
+		else if(element.className.split(' ')[0] === 'time' || element.className.split(' ')[0] === 'date'){
+			input = getParentInput(element);
+		}
+		else{
+			var popup = getPopupParent(element);
+			if(popup){
+				input = getParentInput(getInputOfPopup(popup));
+			}
+			else{
+				return false;
+			}
+		}
+	}
+
+	var configuration = {
+		auto_close_date         : 1,
+		auto_close_time         : 1,
+		auto_redirect_date      : 1,
+		auto_redirect_time      : 1,
+		live_check_date         : 1,
+		live_check_time         : 1,
+		active_disabled_buttons : 0,
+		default_date            : '',
+		number_letters_day_name : 3
+	};
+
+	if(input.dataset.autoCloseDate && !(input.dataset.autoCloseDate == '1')){
+		configuration.auto_close_date = 0;
+	}
+	if(input.dataset.autoCloseTime && !(input.dataset.autoCloseTime == '1')){
+		configuration.auto_close_time = 0;
+	}
+	if(input.dataset.autoRedirectDate && !(input.dataset.autoRedirectDate == '1')){
+		configuration.auto_redirect_date = 0;
+	}
+	if(input.dataset.autoRedirectTime && !(input.dataset.autoRedirectTime == '1')){
+		configuration.auto_redirect_time = 0;
+	}
+	if(input.dataset.liveCheckDate && !(input.dataset.liveCheckDate == '1')){
+		configuration.live_check_date = 0;
+	}
+	if(input.dataset.liveCheckTime && !(input.dataset.liveCheckTime == '1')){
+		configuration.live_check_time = 0;
+	}
+	if(input.dataset.activeDisabledButtons && !(input.dataset.activeDisabledButtons == '0')){
+		configuration.active_disabled_buttons = 1;
+	}
+	if(input.dataset.defaultDate && !(input.dataset.defaultDate == '')){
+		configuration.default_date = input.dataset.defaultDate;
+	}
+	if(input.dataset.numberLettersDayName && !(input.dataset.numberLettersDayName == '3')){
+		configuration.number_letters_day_name = parseInt(input.dataset.numberLettersDayName);
+	}
+
+	return configuration;
+}
+
+/**
  * Get date to use when original input is empty
  * @param last_input original input
  * @returns {*}
@@ -746,12 +827,12 @@ function getDateWhenLastIsEmpty(last_input){
 
 		if(date_input.id.split('$$')[0] == 1){
 			var date = moment(value_date, format.date.display, locale_lang, true);
-			date = date.format(original_format).toString();
+			date = date.format(format.original_format).toString();
 			return date;
 		}
 		else{
 			var date = moment(value_date, format.date.edit, locale_lang, true);
-			date = date.format(original_format).toString();
+			date = date.format(format.original_format).toString();
 			return date;
 		}
 	}
@@ -760,11 +841,16 @@ function getDateWhenLastIsEmpty(last_input){
 		date.hour(0);
 		date.minute(0);
 		date.second(0);
-		date = date.format(original_format).toString();
+		date = date.format(format.original_format).toString();
 		return date;
 	}
 }
 
+/**
+ * Get format for parent input of given element
+ * @param element any element "under" original input
+ * @returns {*} the format
+ */
 function getFormat(element){
 	var input = element;
 	if(!(element.className.indexOf('datetime') !== -1 || element.className.indexOf('date_time') !== -1)){
@@ -784,7 +870,7 @@ function getFormat(element){
 			}
 		}
 	}
-	var format = {};
+	var format = {original_format : false};
 	if(input.dataset.formatDateEdit || input.dataset.formatDateDisplay){
 		format.date = {};
 		format.date.edit    = input.dataset.formatDateEdit ? input.dataset.formatDateEdit : input.dataset.formatDateDisplay ;
@@ -795,6 +881,9 @@ function getFormat(element){
 		format.time = {};
 		format.time.edit    = input.dataset.formatTimeEdit ? input.dataset.formatTimeEdit : input.dataset.formatTimeDisplay;
 		format.time.display = input.dataset.formatTimeDisplay ? input.dataset.formatTimeDisplay : input.dataset.formatTimeEdit;
+	}
+	if(input.dataset.originalFormat){
+		format.original_format = input.dataset.originalFormat;
 	}
 	return format;
 }
@@ -851,7 +940,9 @@ function getFullRegexForFormat(format){
  * @param date the date
  * @returns {string} the html
  */
-function getHtmlForDateSelector(date, display_selection){
+function getHtmlForDateSelector(element, date, display_selection){
+
+	var configuration = getConfiguration(element);
 
 	var monday    = moment.unix(345600).locale(locale_lang).format('dddd');
 	var tuesday   = moment.unix(432000).locale(locale_lang).format('dddd');
@@ -891,6 +982,8 @@ function getHtmlForDateSelector(date, display_selection){
 			lines[i][j] = [];
 		}
 	}
+
+	var number_of_letters_for_days_name_in_selector = configuration.number_letters_day_name;
 
 	var html  = '<table class="day-selector" id="table-selector">'
 						+   '<tr id="tr-day-columns-names">'
@@ -945,7 +1038,7 @@ function getHtmlForDateSelector(date, display_selection){
 
 	var id_disabled = '';
 	var onclick_disable = '';
-	if(disabled_buttons_can_be_overred_and_clicked){
+	if(configuration.active_disabled_buttons){
 		id_disabled = 'basic';
 		onclick_disable = 'dateSelectorClicked(this, '+display_date+')';
 	}
@@ -1259,7 +1352,7 @@ function getInputFormat(element){
 		}
 		if(element.value === ''){
 			var value = getDateWhenLastIsEmpty(getParentInput(element));
-			var date = moment(value, original_format, locale_lang, false);
+			var date = moment(value, format.original_format, locale_lang, false);
 			date = date.format(format.date.edit).toString();
 			return date;
 		}
@@ -1278,7 +1371,7 @@ function getInputFormat(element){
 		}
 		if(element.value === ''){
 			var value = getDateWhenLastIsEmpty(getParentInput(element));
-			var date = moment(value, original_format, locale_lang, false);
+			var date = moment(value, format.original_format, locale_lang, false);
 			date = date.format(format.time.edit).toString();
 			return date;
 		}
@@ -1401,7 +1494,7 @@ function getOutputFormat(element){
 		}
 		if(element.value === ''){
 			var value = getDateWhenLastIsEmpty(getParentInput(element));
-			var date = moment(value, original_format, locale_lang, false);
+			var date = moment(value, format.original_format, locale_lang, false);
 			date = date.format(format.date.display).toString();
 			return date;
 		}
@@ -1420,7 +1513,7 @@ function getOutputFormat(element){
 		}
 		if(element.value === ''){
 			var value = getDateWhenLastIsEmpty(getParentInput(element));
-			var date = moment(value, original_format, locale_lang, false);
+			var date = moment(value, format.original_format, locale_lang, false);
 			date = date.format(format.time.display).toString();
 			return date;
 		}
@@ -1441,8 +1534,7 @@ function getParentInput(element){
 	else{
 		id = element.className.split('time-')[1];
 	}
-	var parentInput = document.querySelector('.date-picker-'+id);
-	return parentInput;
+	return document.querySelector('.date-picker-'+id);
 }
 
 /**
@@ -1477,7 +1569,10 @@ function getPopupParent(element){
  * Hide precedent dateTime input and set the new one(s)
  */
 function hideAndSetNew(element){
-		var format = getFormat(element);
+	var configuration = getConfiguration(element);
+	var format = getFormat(element);
+	if(format.original_format){
+
 		element.style.display = 'none';
 		element.className  += ' date-picker-' + input_number.toString();
 		var name_last_input   = element.getAttribute('name');
@@ -1485,20 +1580,20 @@ function hideAndSetNew(element){
 		var time_input        = name_last_input + '_time';
 		var last_input_value  = element.getAttribute('value');
 		var isEmpty           = false;
+		var default_date = configuration.default_date;
 
 		if(last_input_value === ''){
 			isEmpty = true;
 			if(default_date === 'now' || default_date === ''){
 				last_input_value = moment().locale(locale_lang);
-				last_input_value.format(original_format);
+				last_input_value.format(format.original_format);
 			}
 			else{
 				last_input_value = default_date;
 			}
 		}
 
-		var display_date      = moment(last_input_value, original_format, locale_lang, false);
-
+		var display_date      = moment(last_input_value, format.original_format, locale_lang, false);
 
 		var html   =  '<div class="date-time-picker">';
 
@@ -1538,6 +1633,8 @@ function hideAndSetNew(element){
 		element.insertAdjacentHTML('afterend', html);
 
 		input_number++;
+
+	}
 }
 
 /**
@@ -1546,6 +1643,8 @@ function hideAndSetNew(element){
  */
 function hourSelectorClicked(element){
 	var format = getFormat(element);
+	var configuration = getConfiguration(element);
+
 	var table         = element.parentNode.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-hour-selector');
 	td_selectable.forEach(function(element){
@@ -1557,14 +1656,14 @@ function hourSelectorClicked(element){
 	updateHour(popup, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 'm') && !contains(format.time.edit.split(''), 's')){
-		if(auto_close_when_more_precise_time_selected){
+		if(configuration.auto_close_time){
 			popup.style.display = "none";
 			popup.blur();
 		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(auto_redirect_to_next_when_select_time){
+		if(configuration.auto_redirect_time){
 			if(contains(format.time.edit.split(''), 'm')){
 				var minute_selector = popup.querySelector('.selector').querySelector('.minute-selector');
 				displaySelector(minute_selector);
@@ -1637,7 +1736,7 @@ function initialiseDatePopup(element, display_date){
 	var div_selector    = element.querySelector('.selector');
 
 	if(contains(order, 'D')){
-		var date_selector_html = getHtmlForDateSelector(display_date, display_selection);
+		var date_selector_html = getHtmlForDateSelector(element, display_date, display_selection);
 		div_selector.innerHTML += date_selector_html;
 	}
 	if(contains(order, 'M')){
@@ -1742,7 +1841,9 @@ function isDate(element){
  * @param element the clicked minute (td)
  */
 function minuteSelectorClicked(element){
+	var configuration = getConfiguration(element);
 	var format = getFormat(element);
+
 	var table         = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-minute-selector');
 	td_selectable.forEach(function(element){
@@ -1754,14 +1855,14 @@ function minuteSelectorClicked(element){
 	updateMinute(popup, element.innerHTML);
 
 	if(!contains(format.time.edit.split(''), 's')){
-		if(auto_close_when_more_precise_time_selected){
+		if(configuration.auto_close_time){
 			popup.style.display = "none";
 			popup.blur();
 		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(auto_redirect_to_next_when_select_time){
+		if(configuration.auto_redirect_time){
 			var second_selector = popup.querySelector('.selector').querySelector('.second-selector');
 			displaySelector(second_selector);
 		}
@@ -1777,6 +1878,8 @@ function minuteSelectorClicked(element){
  * @param element the clicked td
  */
 function monthSelectorClicked(element){
+	var configuration = getConfiguration(element);
+
 	var table         = element.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-month-selector');
 	td_selectable.forEach(function(element){
@@ -1785,16 +1888,18 @@ function monthSelectorClicked(element){
 	element.id                  = 'clicked';
 
 	var popup                   = getPopupParent(table);
+	var order = getOrderDateEdit(element);
+
 	updateMonth(popup, element.innerHTML);
-	if(!contains(getOrderDateEdit(element), 'D')){
-		if(auto_close_when_more_precise_date_selected){
+	if(!contains(order, 'D')){
+		if(configuration.auto_close_date){
 			popup.style.display = "none";
 			popup.blur();
 		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(auto_redirect_to_next_when_select_date){
+		if(configuration.auto_redirect_date){
 			var day_selector = popup.querySelector('.day-selector');
 			displaySelector(day_selector);
 		}
@@ -1810,6 +1915,8 @@ function monthSelectorClicked(element){
  * @param element the clicked second (td)
  */
 function secondSelectorClicked(element){
+	var configuration = getConfiguration(element);
+
 	var table         = element.parentNode.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-second-selector');
 	td_selectable.forEach(function(element){
@@ -1820,7 +1927,7 @@ function secondSelectorClicked(element){
 
 	updateSecond(popup, element.innerHTML);
 
-	if(auto_close_when_more_precise_time_selected){
+	if(configuration.auto_close_time){
 		popup.style.display         = "none";
 		popup.blur();
 	}
@@ -1873,7 +1980,7 @@ function setDisplayFormat(element){
 	var input = element.querySelector('.datetime');
 	if(!input){
 		var value = element.innerHTML;
-		value = moment(value, original_format, locale_lang, false);
+		value = moment(value, format.original_format, locale_lang, false);
 		var to_display = '';
 		if("date" in format){
 			to_display += value.format(format.date.display).toString();
@@ -1918,7 +2025,9 @@ function setListenersTime(element){
  * @param element the input to set to output format
  */
 function setOutputFormat(element){
+	var configuration = getConfiguration(element);
 	var format = getFormat(element);
+
 	var value_element = element.value;
 	if(element.id.split('$$')[0] == 0){
 		if(isDate(element)){
@@ -1939,7 +2048,7 @@ function setOutputFormat(element){
 				new_value = new_value.format(format.time.display).toString();
 			}
 		}
-		if(value_element === '' && default_date === ''){
+		if(value_element === '' && configuration.default_date === ''){
 
 		}
 		else{
@@ -1967,8 +2076,7 @@ function updateDate(element, value, displayed_date){
 
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
 	updateDateRealInput(date_input);
-	var popup         = element.querySelector('.popup-date-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -1976,8 +2084,10 @@ function updateDate(element, value, displayed_date){
  * @param element the input (.date or .time)
  */
 function updateDateRealInput(element){
+	var configuration = getConfiguration(element);
 	var format = getFormat(element);
-	if(element.value === '' && default_date === ''){
+
+	if(element.value === '' && configuration.default_date === ''){
 
 	}
 	else{
@@ -1988,7 +2098,7 @@ function updateDateRealInput(element){
 		if(last_value === ''){
 			last_value = getDateWhenLastIsEmpty(last_input);
 		}
-		last_has_date = moment(last_value, original_format, locale_lang, false);
+		last_has_date = moment(last_value, format.original_format, locale_lang, false);
 		if(isDate(element)){
 			var new_value       = getInputFormat(element);
 			var new_date        = moment(new_value, format.date.edit, locale_lang, true);
@@ -1997,7 +2107,7 @@ function updateDateRealInput(element){
 			last_has_date.month(new_date.month());
 			last_has_date.date(new_date.date());
 
-			last_input.setAttribute('value', last_has_date.format(original_format));
+			last_input.setAttribute('value', last_has_date.format(format.original_format));
 		}
 		else{
 			var new_time  = getInputFormat(element);
@@ -2010,7 +2120,7 @@ function updateDateRealInput(element){
 			last_has_date.second(new_time.second());
 			last_has_date.millisecond(new_time.millisecond());
 
-			last_input.setAttribute('value', last_has_date.format(original_format));
+			last_input.setAttribute('value', last_has_date.format(format.original_format));
 		}
 	}
 }
@@ -2028,8 +2138,7 @@ function updateHour(element, value){
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
-	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -2068,8 +2177,7 @@ function updateMinute(element, value){
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
-	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -2085,8 +2193,7 @@ function updateMonth(element, value){
 	date_input.value  = date.format(format.date.edit);
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
 	updateDateRealInput(date_input);
-	var popup         = element.querySelector('.popup-date-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -2102,8 +2209,7 @@ function updateSecond(element, value){
 	time_input.value  = time.format(format.time.edit);
 	time_input.id     = 0 + '$$' + time.format(format.time.edit);
 	updateDateRealInput(time_input);
-	var popup         = element.querySelector('.popup-time-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -2119,8 +2225,7 @@ function updateYear(element, value){
 	date_input.value  = date.format(format.date.edit);
 	date_input.id     = 0 + '$$' + date.format(format.date.edit);
 	updateDateRealInput(date_input);
-	var popup         = element.querySelector('.popup-date-picker');
-	displayPopup(popup, null);
+	displayPopup(element, null);
 }
 
 /**
@@ -2128,6 +2233,8 @@ function updateYear(element, value){
  * @param element the clicked year (td)
  */
 function yearSelectorClicked(element){
+	var configuration = getConfiguration(element);
+
 	var table         = element.parentNode.parentNode.parentNode.parentNode;
 	var td_selectable = table.querySelectorAll('.label-year-selector');
 	td_selectable.forEach(function(element){
@@ -2140,14 +2247,14 @@ function yearSelectorClicked(element){
 
 	updateYear(popup, element.innerHTML);
 	if(!contains(order, 'D') && !contains(order, 'M')){
-		if(auto_close_when_more_precise_date_selected){
+		if(configuration.auto_close_date){
 			popup.style.display = "none";
 			popup.blur();
 		}
 	}
 	else{
 		displayPopup(popup, null);
-		if(auto_redirect_to_next_when_select_date){
+		if(configuration.auto_redirect_date){
 			if(contains(order, 'M')){
 				var month_selector = popup.querySelector('.month-selector');
 				displaySelector(month_selector);
