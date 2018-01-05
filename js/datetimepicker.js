@@ -177,6 +177,38 @@
 
 var locale_lang = window.navigator.language;
 
+
+/*
+ * ########################
+ * # GLOBAL CONFIGURATION #
+ * ########################
+ *
+ * Set those values if you want the same format for all your date-time-pickers when not defined in data
+ * of input
+ *
+ */
+
+var original_format;
+var format_date_edit="DD-MM-YYYY";
+var format_date_display="Do MMM YYYY";
+var format_time_edit="HH:mm";
+var format_time_display="HH:mm a";
+
+
+/*var original_format = "DD/MM/YYYY HH:mm";
+var format_date_edit="DD-MM-YYYY";
+var format_date_display="Do MMM YYYY";
+var format_time_edit="HH:mm";
+var format_time_display="HH:mm a";*/
+
+/*
+var original_format;
+var format_date_edit;
+var format_date_display;
+var format_time_edit;
+var format_time_display;*/
+
+
 /**
  * Used to check if date / time user in being writing are correct
  */
@@ -871,19 +903,33 @@ function getFormat(element){
 		}
 	}
 	var format = {original_format : false};
-	if(input.dataset.formatDateEdit || input.dataset.formatDateDisplay){
+	if((input.dataset.formatDateEdit && input.dataset.formatDateEdit !== '') || (input.dataset.formatDateDisplay && input.dataset.formatDateDisplay !== '')){
 		format.date = {};
-		format.date.edit    = input.dataset.formatDateEdit ? input.dataset.formatDateEdit : input.dataset.formatDateDisplay ;
-		format.date.display = input.dataset.formatDateDisplay ? input.dataset.formatDateDisplay : input.dataset.formatDateEdit;
+		format.date.edit    = input.dataset.formatDateEdit ? input.dataset.formatDateEdit : (format_date_edit ? format_date_edit : input.dataset.formatDateDisplay);
+		format.date.display = input.dataset.formatDateDisplay ? input.dataset.formatDateDisplay : (format_date_display ? format_date_display : input.dataset.formatDateEdit);
+	}
+	else if((format_date_edit && input.dataset.formatDateEdit !== '') || (format_date_display && input.dataset.formatDateDisplay !== '')){
+	console.log(":"+input.dataset.formatDateDisplay + ": :" + input.dataset.formatDateEdit+":");
+		format.date = {};
+		format.date.edit = format_date_edit ? format_date_edit : format_date_display;
+		format.date.display = format_date_display ? format_date_display : format_date_edit;
 	}
 
-	if(input.dataset.formatTimeEdit || input.dataset.formatTimeDisplay){
+	if((input.dataset.formatTimeEdit && input.dataset.formatTimeEdit !== '') || (input.dataset.formatTimeDisplay && input.dataset.formatTimeDisplay !== '')){
 		format.time = {};
-		format.time.edit    = input.dataset.formatTimeEdit ? input.dataset.formatTimeEdit : input.dataset.formatTimeDisplay;
-		format.time.display = input.dataset.formatTimeDisplay ? input.dataset.formatTimeDisplay : input.dataset.formatTimeEdit;
+		format.time.edit    = input.dataset.formatTimeEdit ? input.dataset.formatTimeEdit : (format_time_edit ? format_time_edit : input.dataset.formatTimeDisplay);
+		format.time.display = input.dataset.formatTimeDisplay ? input.dataset.formatTimeDisplay : (format_time_display ? format_time_display : input.dataset.formatTimeEdit);
+	}
+	else if((format_time_display && input.dataset.formatTimeDisplay !== '') || (format_time_edit && input.dataset.formatTimeEdit !== '')){
+		format.time = {};
+		format.time.edit = format_time_edit ? format_time_edit : format_time_display;
+		format.time.display = format_time_display ? format_time_display : format_time_edit;
 	}
 	if(input.dataset.originalFormat){
 		format.original_format = input.dataset.originalFormat;
+	}
+	else if(original_format){
+		format.original_format = original_format;
 	}
 	return format;
 }

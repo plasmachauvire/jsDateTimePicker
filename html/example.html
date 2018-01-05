@@ -3,7 +3,7 @@
 
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>Date Time Picker Tests</title>
+		<title>Date Time Picker Examples</title>
 		<link href="../css/dateTimePickerStyle.css" rel="stylesheet">
 	</head>
 
@@ -64,6 +64,27 @@
 						class="datetime" name="1" value="23/12/2017 17:50">
 					<br />
 				</td>
+			</tr>
+
+			<tr>
+
+				<td style="width:50%">
+					<br />
+					<label title="use default global config">Default global config</label>
+					<input autocomplete="off"
+						data-original-format="DD/MM/YYYY HH:mm"
+						class="datetime" name="8" value="23/12/2017 17:50">
+					<br />
+				</td>
+
+				<td style="width:50%">
+					<label title="Incorrect parameters">Incorrect parameters (js not apply)</label>
+					<br />
+					<input autocomplete="off"
+						class="datetime" name="9" value="23/12/2017 17:50">
+					<br />
+				</td>
+
 			</tr>
 
 			<tr>
@@ -151,6 +172,36 @@
 						class="datetime" name="5" value="23/12/2017 17:50">
 					<br />
 				</td>
+			</tr>
+
+			<tr>
+
+				<td style="width:50%">
+					<br />
+					<label title="no time">No time</label>
+					<input autocomplete="off"
+						data-format-date-edit="DD-MM-YYYY"
+						data-format-date-display="Do MMM YYYY"
+						data-format-time-edit=""
+						data-format-time-display=""
+						data-original-format="DD/MM/YYYY HH:mm"
+						class="datetime" name="6" value="23/12/2017 17:50">
+					<br />
+				</td>
+
+				<td style="width:50%">
+					<br />
+					<label title="no date">No date</label>
+					<input autocomplete="off"
+						data-format-date-edit=""
+						data-format-date-display=""
+						data-format-time-edit="HH:mm:ss"
+						data-format-time-display="HH:mm:ss"
+						data-original-format="DD/MM/YYYY HH:mm"
+						class="datetime" name="7" value="23/12/2017 17:50">
+					<br />
+				</td>
+
 			</tr>
 
 
