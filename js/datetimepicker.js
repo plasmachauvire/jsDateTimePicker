@@ -1,4 +1,47 @@
 /*
+ * ########################
+ * # GLOBAL CONFIGURATION #
+ * ########################
+ *
+ * Set those values if you want the same format for all your date-time-pickers when not defined in data
+ * of input
+ *
+ */
+
+var original_format;
+var format_date_edit          = "DD-MM-YYYY";
+var format_date_display       = "Do MMM YYYY";
+var format_time_edit          = "HH:mm";
+var format_time_display       = "HH:mm a";
+
+var auto_close_date           = 1;
+var auto_close_time           = 1;
+var auto_redirect_date        = 1;
+var auto_redirect_time        = 1;
+var live_check_date           = 1;
+var live_check_time           = 1;
+var active_disabled_buttons   = 0;
+var default_date              = '';
+var number_letters_day_name   = 3;
+
+
+/*
+var original_format           = "DD/MM/YYYY HH:mm";
+var format_date_edit          = "DD-MM-YYYY";
+var format_date_display       = "Do MMM YYYY";
+var format_time_edit          = "HH:mm";
+var format_time_display       = "HH:mm a";
+*/
+
+/*
+var original_format;
+var format_date_edit;
+var format_date_display;
+var format_time_edit;
+var format_time_display;
+*/
+
+/*
  * ################
  * # REQUIREMENTS #
  * ################
@@ -177,51 +220,6 @@
 
 var locale_lang = window.navigator.language;
 
-
-/*
- * ########################
- * # GLOBAL CONFIGURATION #
- * ########################
- *
- * Set those values if you want the same format for all your date-time-pickers when not defined in data
- * of input
- *
- */
-
-var original_format;
-var format_date_edit          = "DD-MM-YYYY";
-var format_date_display       = "Do MMM YYYY";
-var format_time_edit          = "HH:mm";
-var format_time_display       = "HH:mm a";
-
-var auto_close_date           = 1;
-var auto_close_time           = 1;
-var auto_redirect_date        = 1;
-var auto_redirect_time        = 1;
-var live_check_date           = 1;
-var live_check_time           = 1;
-var active_disabled_buttons   = 0;
-var default_date              = '';
-var number_letters_day_name   = 3;
-
-
-/*
-var original_format           = "DD/MM/YYYY HH:mm";
-var format_date_edit          = "DD-MM-YYYY";
-var format_date_display       = "Do MMM YYYY";
-var format_time_edit          = "HH:mm";
-var format_time_display       = "HH:mm a";
-*/
-
-/*
-var original_format;
-var format_date_edit;
-var format_date_display;
-var format_time_edit;
-var format_time_display;
-*/
-
-
 /**
  * Used to check if date / time user in being writing are correct
  */
@@ -310,6 +308,7 @@ var regex = {
 };
 
 var input_number = 0;
+
 
 var dates_input   = document.querySelectorAll('.datetime');
 dates_input.forEach(hideAndSetNew);
@@ -922,7 +921,6 @@ function getFormat(element){
 		format.date.display = input.dataset.formatDateDisplay ? input.dataset.formatDateDisplay : (format_date_display ? format_date_display : input.dataset.formatDateEdit);
 	}
 	else if((format_date_edit && input.dataset.formatDateEdit !== '') || (format_date_display && input.dataset.formatDateDisplay !== '')){
-	console.log(":"+input.dataset.formatDateDisplay + ": :" + input.dataset.formatDateEdit+":");
 		format.date = {};
 		format.date.edit = format_date_edit ? format_date_edit : format_date_display;
 		format.date.display = format_date_display ? format_date_display : format_date_edit;
@@ -2001,7 +1999,7 @@ function secondSelectorClicked(element){
  * @param element the input to set on edit format
  */
 function setInputFormat(element){
-	var format = getFormat(element);
+	var format = getFormat(element)
 	if(element.id.split('$$')[0] == 1){
 		var value_element = element.value;
 		if(isDate(element)){
